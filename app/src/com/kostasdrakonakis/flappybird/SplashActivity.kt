@@ -30,5 +30,8 @@ class SplashActivity : Activity() {
         findViewById<Button>(R.id.playButton).setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
         }
+        findViewById<Button>(R.id.btnCharacter).setOnClickListener {
+            startActivity(Intent(this, CharacterSelectActivity::class.java))
+        }
     }
 }

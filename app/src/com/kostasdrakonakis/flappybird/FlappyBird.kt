@@ -26,7 +26,7 @@ import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Rectangle
 import java.util.*
 
-class FlappyBird : ApplicationAdapter() {
+class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
 
     private lateinit var batch: SpriteBatch
     private lateinit var background: Texture
@@ -67,7 +67,8 @@ class FlappyBird : ApplicationAdapter() {
         font.color = Color.WHITE
         font.data.setScale(10f)
 
-        birds = arrayOf(Texture("bird.png"), Texture("bird2.png"))
+        val skin = Characters.list[characterIndex]
+        birds = arrayOf(Texture(skin.frameA), Texture(skin.frameB))
 
         gdxHeight = Gdx.graphics.height
         gdxWidth = Gdx.graphics.width

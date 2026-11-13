@@ -23,6 +23,6 @@ import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
 class MainActivity : AndroidApplication() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initialize(FlappyBird(), AndroidApplicationConfiguration())
+        initialize(FlappyBird(GamePrefs.getCharacter(this)), AndroidApplicationConfiguration())
     }
 }

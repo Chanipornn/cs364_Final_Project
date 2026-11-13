@@ -1,13 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@android:color/white"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textColor="#000000"
+        android:textSize="36sp"
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/playButton"
-        android:layout_width="wrap_content"
+        android:layout_width="240dp"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="@string/play" />
-</RelativeLayout>
+        android:layout_marginTop="32dp"
+        android:text="@string/play_game" />
+
+    <Button
+        android:id="@+id/btnCharacter"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:text="@string/select_character" />
+
+    <!-- ปุ่ม High Score / Settings / Exit ให้คนที่ 2 และ 3 เพิ่มตรงนี้ -->
+</LinearLayout>
