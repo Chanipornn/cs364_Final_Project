@@ -1,6 +1,7 @@
 package com.kostasdrakonakis.flappybird
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
@@ -11,6 +12,11 @@ class CharacterSelectActivity : Activity() {
     private var index = 0
     private lateinit var img: ImageView
     private lateinit var txtName: TextView
+
+    // ใส่ภาษา/ธีมที่เลือกให้หน้านี้
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SettingsHelper.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

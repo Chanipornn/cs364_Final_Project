@@ -15,14 +15,21 @@
  */
 package com.kostasdrakonakis.flappybird
 
+import android.content.Context
 import android.os.Bundle
 
 import com.badlogic.gdx.backends.android.AndroidApplication
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
 
 class MainActivity : AndroidApplication() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SettingsHelper.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initialize(FlappyBird(GamePrefs.getCharacter(this)), AndroidApplicationConfiguration())
+        val game = FlappyBird(GamePrefs.getCharacter(this), GamePrefs.isNightMode(this))
+        initialize(game, AndroidApplicationConfiguration())
     }
 }

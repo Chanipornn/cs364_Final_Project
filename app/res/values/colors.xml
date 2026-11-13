@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ฟิล์มสีที่ทับพื้นหลังเมนู กลางวัน = โปร่งใส -->
+    <color name="menu_overlay">#00000000</color>
+</resources>

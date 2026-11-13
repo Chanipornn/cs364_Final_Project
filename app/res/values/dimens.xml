@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ===== หน้าเมนูหลัก: ปุ่ม ===== -->
+    <dimen name="menu_button_width">270dp</dimen>
+    <dimen name="menu_button_gap">12dp</dimen>
+
+    <!-- ===== หน้า Settings: ขนาดตัวอักษร (sp) ===== -->
+    <dimen name="settings_title_text">40sp</dimen>
+    <dimen name="settings_label_text">24sp</dimen>
+
+    <!-- ===== หน้า Settings: ความกว้าง (dp) ===== -->
+    <dimen name="settings_row_width">280dp</dimen>
+    <dimen name="settings_back_width">240dp</dimen>
+
+    <!-- ===== หน้า Settings: ระยะห่าง (dp) ===== -->
+    <dimen name="settings_padding">24dp</dimen>
+    <dimen name="settings_first_section_gap">28dp</dimen>
+    <dimen name="settings_section_gap">24dp</dimen>
+    <dimen name="settings_label_gap">8dp</dimen>
+    <dimen name="settings_button_gap">6dp</dimen>
+    <dimen name="settings_back_gap">36dp</dimen>
+
+    <!-- ===== หน้าเมนูหลัก: ทั้งหน้า ===== -->
+    <dimen name="menu_padding">24dp</dimen>
+    <dimen name="menu_title_text">52sp</dimen>
+
+    <!-- ===== หน้าเมนูหลัก: รูปนก ===== -->
+    <dimen name="menu_bird_width">136dp</dimen>
+    <dimen name="menu_bird_height">96dp</dimen>
+    <dimen name="menu_bird_margin_top">20dp</dimen>
+    <dimen name="menu_bird_margin_bottom">28dp</dimen>
+
+    <!-- ===== หน้าเมนูหลัก: ปุ่มเริ่มเกม (ใหญ่กว่าปุ่มอื่น) ===== -->
+    <dimen name="menu_play_text">26sp</dimen>
+
+    <!-- ===== หน้าเลือกตัวละคร ===== -->
+    <dimen name="char_padding">24dp</dimen>
+    <dimen name="char_title_text">34sp</dimen>
+    <dimen name="char_row_margin_top">28dp</dimen>
+    <dimen name="char_arrow_size">64dp</dimen>
+    <dimen name="char_arrow_text">30sp</dimen>
+    <dimen name="char_preview_height">170dp</dimen>
+    <dimen name="char_name_margin_top">8dp</dimen>
+    <dimen name="char_name_text">28sp</dimen>
+    <dimen name="char_button_width">240dp</dimen>
+    <dimen name="char_select_margin_top">28dp</dimen>
+    <dimen name="char_back_margin_top">10dp</dimen>
+
+</resources>

@@ -8,7 +8,8 @@
         android:layout_height="match_parent"
         android:contentDescription="@null"
         android:scaleType="centerCrop"
-        android:src="@drawable/bg_menu" />
+        android:src="@drawable/bg_menu"
+        android:foreground="@color/menu_overlay" />
 
     <!-- ScrollView: จอเตี้ยหรือผู้ใช้ตั้งตัวอักษรใหญ่ ปุ่มจะเลื่อนดูได้ ไม่ล้นจอ
          fillViewport: จอปกติยังจัดกึ่งกลางเหมือนเดิม -->
@@ -18,50 +19,59 @@
         android:fillViewport="true"
         android:scrollbars="none">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="24dp">
-
-        <TextView
-            style="@style/GameTitle"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="@string/app_name"
-            android:textSize="52sp" />
+            android:orientation="vertical"
+            android:padding="@dimen/menu_padding">
 
-        <!-- แสดงตัวละครที่เลือกอยู่ -->
-        <ImageView
-            android:id="@+id/imgMenuBird"
-            android:layout_width="136dp"
-            android:layout_height="96dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="28dp"
-            android:contentDescription="@string/select_character"
-            android:scaleType="fitCenter" />
+            <TextView
+                style="@style/GameTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/app_name"
+                android:textSize="@dimen/menu_title_text" />
 
-        <Button
-            android:id="@+id/playButton"
-            style="@style/GameButton.Green"
-            android:layout_width="270dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:text="@string/play_game"
-            android:textSize="26sp" />
+            <!-- แสดงตัวละครที่เลือกอยู่ -->
+            <ImageView
+                android:id="@+id/imgMenuBird"
+                android:layout_width="@dimen/menu_bird_width"
+                android:layout_height="@dimen/menu_bird_height"
+                android:layout_marginTop="@dimen/menu_bird_margin_top"
+                android:layout_marginBottom="@dimen/menu_bird_margin_bottom"
+                android:contentDescription="@string/select_character"
+                android:scaleType="fitCenter" />
 
-        <Button
-            android:id="@+id/btnCharacter"
-            style="@style/GameButton.Orange"
-            android:layout_width="270dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:text="@string/select_character" />
+            <Button
+                android:id="@+id/playButton"
+                style="@style/GameButton.Green"
+                android:layout_width="@dimen/menu_button_width"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/menu_button_gap"
+                android:text="@string/play_game"
+                android:textSize="@dimen/menu_play_text" />
 
-        <!-- ปุ่ม High Score / Settings / Exit ให้คนที่ 2 และ 3 เพิ่มตรงนี้
-             แนะนำ: High Score = GameButton.Blue, Settings = GameButton.Blue, Exit/Clear = GameButton.Red -->
-    </LinearLayout>
+            <Button
+                android:id="@+id/btnCharacter"
+                style="@style/GameButton.Orange"
+                android:layout_width="@dimen/menu_button_width"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/menu_button_gap"
+                android:text="@string/select_character" />
+
+            <Button
+                android:id="@+id/btnSettings"
+                style="@style/GameButton.Blue"
+                android:layout_width="@dimen/menu_button_width"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/menu_button_gap"
+                android:text="@string/settings" />
+
+            <!-- ปุ่ม High Score / Exit ให้คนที่ 3 เพิ่มตรงนี้
+                 แนะนำ: High Score = GameButton.Blue, Exit/Clear = GameButton.Red
+                 ความกว้าง/ระยะห่างใช้ @dimen/menu_button_width และ @dimen/menu_button_gap -->
+        </LinearLayout>
     </ScrollView>
 </FrameLayout>
