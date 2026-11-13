@@ -1,12 +1,54 @@
 <resources>
 
     <style name="GdxTheme" parent="android:Theme">
-		<item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
         <item name="android:windowAnimationStyle">@android:style/Animation</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- ===== สไตล์ปุ่มเกม ===== ใช้: style="@style/GameButton.Green" (หรือ Orange / Blue / Red) -->
+    <style name="GameButton" parent="android:Widget.Button">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:fontFamily">@font/erica_one</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:shadowColor">#99000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">3</item>
+        <item name="android:shadowRadius">1</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:minHeight">64dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">16dp</item>
+    </style>
+    <style name="GameButton.Green"><item name="android:background">@drawable/btn_game_green</item></style>
+    <style name="GameButton.Orange"><item name="android:background">@drawable/btn_game_orange</item></style>
+    <style name="GameButton.Blue"><item name="android:background">@drawable/btn_game_blue</item></style>
+    <style name="GameButton.Red"><item name="android:background">@drawable/btn_game_red</item></style>
+
+    <!-- หัวข้อใหญ่แบบเกม -->
+    <style name="GameTitle">
+        <item name="android:textColor">#FFE04A</item>
+        <item name="android:fontFamily">@font/erica_one</item>
+        <item name="android:shadowColor">#C45E00</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">6</item>
+        <item name="android:shadowRadius">1</item>
+    </style>
+
+    <!-- ข้อความสีขาวมีเงา -->
+    <style name="GameText">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:fontFamily">@font/erica_one</item>
+        <item name="android:shadowColor">#99000000</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">3</item>
+        <item name="android:shadowRadius">1</item>
     </style>
 
 </resources>

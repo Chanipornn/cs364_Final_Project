@@ -2,65 +2,76 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#70C5CE"
+    android:background="@drawable/bg_menu"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="24dp">
 
     <TextView
+        style="@style/GameTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:text="@string/select_character"
-        android:textColor="#FFFFFF"
-        android:textSize="28sp"
-        android:textStyle="bold" />
+        android:textSize="34sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="28dp"
         android:gravity="center"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnPrev"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:text="&lt;" />
+            style="@style/GameButton.Blue"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:paddingLeft="0dp"
+            android:paddingRight="0dp"
+            android:text="&lt;"
+            android:textSize="30sp" />
 
         <ImageView
             android:id="@+id/imgPreview"
             android:layout_width="0dp"
-            android:layout_height="160dp"
+            android:layout_height="170dp"
             android:layout_weight="1"
             android:contentDescription="@string/select_character"
             android:scaleType="fitCenter" />
 
         <Button
             android:id="@+id/btnNext"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:text="&gt;" />
+            style="@style/GameButton.Blue"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:paddingLeft="0dp"
+            android:paddingRight="0dp"
+            android:text="&gt;"
+            android:textSize="30sp" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/txtName"
+        style="@style/GameText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp" />
+        android:layout_marginTop="8dp"
+        android:textSize="28sp" />
 
     <Button
         android:id="@+id/btnSelect"
-        android:layout_width="220dp"
+        style="@style/GameButton.Green"
+        android:layout_width="240dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="28dp"
         android:text="@string/select" />
 
     <Button
         android:id="@+id/btnBack"
-        android:layout_width="220dp"
+        style="@style/GameButton.Red"
+        android:layout_width="240dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:text="@string/back" />
 </LinearLayout>

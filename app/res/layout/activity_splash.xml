@@ -18,39 +18,41 @@
         android:padding="24dp">
 
         <TextView
+            style="@style/GameTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:shadowColor="#80000000"
-            android:shadowDx="4"
-            android:shadowDy="4"
-            android:shadowRadius="6"
+            android:gravity="center"
             android:text="@string/app_name"
-            android:textColor="#FFFFFF"
-            android:textSize="44sp"
-            android:textStyle="bold" />
+            android:textSize="52sp" />
 
         <!-- แสดงตัวละครที่เลือกอยู่ -->
         <ImageView
             android:id="@+id/imgMenuBird"
-            android:layout_width="120dp"
-            android:layout_height="90dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="24dp"
+            android:layout_width="136dp"
+            android:layout_height="96dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="28dp"
             android:contentDescription="@string/select_character"
             android:scaleType="fitCenter" />
 
         <Button
             android:id="@+id/playButton"
-            android:layout_width="240dp"
+            style="@style/GameButton.Green"
+            android:layout_width="270dp"
             android:layout_height="wrap_content"
-            android:text="@string/play_game" />
+            android:layout_marginBottom="12dp"
+            android:text="@string/play_game"
+            android:textSize="26sp" />
 
         <Button
             android:id="@+id/btnCharacter"
-            android:layout_width="240dp"
+            style="@style/GameButton.Orange"
+            android:layout_width="270dp"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
             android:text="@string/select_character" />
 
-        <!-- ปุ่ม High Score / Settings / Exit ให้คนที่ 2 และ 3 เพิ่มตรงนี้ -->
+        <!-- ปุ่ม High Score / Settings / Exit ให้คนที่ 2 และ 3 เพิ่มตรงนี้
+             แนะนำ: High Score = GameButton.Blue, Settings = GameButton.Blue, Exit/Clear = GameButton.Red -->
     </LinearLayout>
 </FrameLayout>
