@@ -18,6 +18,7 @@ package com.kostasdrakonakis.flappybird
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
@@ -40,6 +41,7 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
     private lateinit var obstacleTex: Texture
     private lateinit var heartFull: Texture
     private lateinit var heartEmpty: Texture
+    private lateinit var pixel: Texture              // พิกเซลขาว 1x1 ใช้วาดปุ่ม/กล่องสีต่าง ๆ โดยไม่ต้องมีไฟล์รูปเพิ่ม
     private lateinit var topTubeRectangles: Array<Rectangle>
     private lateinit var bottomTubeRectangles: Array<Rectangle>
     private lateinit var birdCircle: Circle
@@ -56,7 +58,7 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
     private var birdY: Float = 0f
     private var velocity: Float = 0f
     private var passed: Int = 0      // จำนวนท่อที่ผ่าน (ใช้คิดด่าน)
-    private var bonus: Int = 0       // คะแนนโบนัสจากเหรียญ
+    private var bonus: Int = 0       // คะแนนโบนัสจากเหรียญ/หัวใจส่วนเกิน
     private val score: Int get() = passed + bonus
     private var level: Int = 1
     private var scoringTube: Int = 0
@@ -74,6 +76,8 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
     private var birdH = 0f
     private var coinSize = 0f
     private var obstacleSize = 0f
+    private var heartItemW = 0f
+    private var heartItemH = 0f
 
     private val tubeX = FloatArray(numberOfTubes)
     private val tubeOffset = FloatArray(numberOfTubes)
@@ -88,7 +92,12 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
     private var hearts = MAX_HEARTS
     private var invincible = 0f
 
-    // ข้อความลอย (+3 / OUCH!)
+    // ปุ่ม Pause ระหว่างเล่น + ปุ่ม Resume/Restart ตอนหยุดอยู่
+    private val pauseButtonRect = Rectangle()
+    private val resumeButtonRect = Rectangle()
+    private val restartButtonRect = Rectangle()
+
+    // ข้อความลอย (+3 / OUCH! / +1 HP)
     private var popupText = ""
     private var popupTimer = 0f
     private var popupX = 0f
@@ -113,6 +122,13 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         obstacleTex = Texture("obstacle.png")
         heartFull = Texture("heart_full.png")
         heartEmpty = Texture("heart_empty.png")
+
+        val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888)
+        pixmap.setColor(1f, 1f, 1f, 1f)
+        pixmap.fill()
+        pixel = Texture(pixmap)
+        pixmap.dispose()
+
         birdCircle = Circle()
         font = BitmapFont()
         font.region.texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
@@ -136,10 +152,27 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         birdH = birds[0].height * unit
         coinSize = coinTex.width * unit
         obstacleSize = obstacleTex.width * unit
+        heartItemW = heartFull.width * unit
+        heartItemH = heartFull.height * unit
         distanceBetweenTubes = gdxWidth * 3f / 4f
 
         topTubeRectangles = Array(numberOfTubes) { Rectangle() }
         bottomTubeRectangles = Array(numberOfTubes) { Rectangle() }
+
+        // ตำแหน่งปุ่ม Pause (มุมขวาบน เว้น safe area) คำนวณครั้งเดียว ใช้ตลอดเกม
+        val safeTop = Gdx.graphics.safeInsetTop.toFloat()
+        val safeRight = Gdx.graphics.safeInsetRight.toFloat()
+        val btnSize = 110f * unit
+        pauseButtonRect.set(
+            gdxWidth - safeRight - btnSize - 24f * unit,
+            gdxHeight - safeTop - btnSize - 24f * unit,
+            btnSize, btnSize
+        )
+        // ปุ่ม Resume / Restart กลางจอ (แสดงตอนหยุดเกม)
+        val cw = 460f * unit
+        val ch = 130f * unit
+        resumeButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f, cw, ch)
+        restartButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f - ch - 30f * unit, cw, ch)
 
         resetGame()
     }
@@ -149,7 +182,7 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         val dt = Gdx.graphics.deltaTime
         val f = minOf(dt * 60f, 3f)
 
-        updateTint(f)
+        if (gameState != STATE_PAUSED) updateTint(f)
         update(dt, f)
 
         batch.begin()
@@ -174,20 +207,13 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
     }
 
     private fun update(dt: Float, f: Float) {
-        time += dt
-        flapTimer += dt
-        if (flapTimer > 0.1f) {
-            flapTimer = 0f
-            flapState = 1 - flapState
-        }
-        if (bannerTimer > 0f) bannerTimer -= dt
-        if (popupTimer > 0f) popupTimer -= dt
-        if (invincible > 0f) invincible -= dt
-        if (tubeFade < 1f) tubeFade = minOf(1f, tubeFade + dt / TUBE_FADE_TIME)
-        blinkTimer += dt
-
         when (gameState) {
             STATE_READY -> {
+                flapTimer += dt
+                if (flapTimer > 0.1f) {
+                    flapTimer = 0f
+                    flapState = 1 - flapState
+                }
                 if (Gdx.input.justTouched()) {
                     velocity = JUMP * unit
                     gameState = STATE_PLAYING
@@ -195,7 +221,24 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
             }
 
             STATE_PLAYING -> {
-                if (Gdx.input.justTouched()) velocity = JUMP * unit
+                if (bannerTimer > 0f) bannerTimer -= dt
+                if (popupTimer > 0f) popupTimer -= dt
+                time += dt
+                flapTimer += dt
+                if (flapTimer > 0.1f) {
+                    flapTimer = 0f
+                    flapState = 1 - flapState
+                }
+                if (invincible > 0f) invincible -= dt
+                if (tubeFade < 1f) tubeFade = minOf(1f, tubeFade + dt / TUBE_FADE_TIME)
+
+                if (Gdx.input.justTouched()) {
+                    if (pointInRect(pauseButtonRect)) {
+                        gameState = STATE_PAUSED
+                        return
+                    }
+                    velocity = JUMP * unit
+                }
 
                 val speed = TUBE_VELOCITY * unit * speedMultiplier()
                 for (i in 0 until numberOfTubes) {
@@ -242,7 +285,19 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
                 checkItems()
             }
 
+            STATE_PAUSED -> {
+                blinkTimer += dt
+                if (Gdx.input.justTouched()) {
+                    if (pointInRect(resumeButtonRect)) {
+                        gameState = STATE_PLAYING
+                    } else if (pointInRect(restartButtonRect)) {
+                        resetGame()
+                    }
+                }
+            }
+
             STATE_GAME_OVER -> {
+                blinkTimer += dt
                 gameOverTimer += dt
                 // รอสั้น ๆ ก่อนรับการแตะ ป้องกันกดรีสตาร์ทโดยไม่ตั้งใจ
                 if (gameOverTimer > RESTART_DELAY && Gdx.input.justTouched()) {
@@ -252,7 +307,18 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         }
     }
 
-    // ---------- ไอเทม: เหรียญ / สิ่งกีดขวาง ----------
+    /** เกมถูกส่งไปพักเบื้องหลัง (กด Home / สลับแอป ฯลฯ) ถ้ากำลังเล่นอยู่ ให้หยุดและรอผู้เล่นกดเล่นต่อเอง */
+    override fun pause() {
+        if (gameState == STATE_PLAYING) gameState = STATE_PAUSED
+    }
+
+    // ---------- ปุ่มสัมผัส ----------
+
+    private fun touchX() = Gdx.input.x.toFloat()
+    private fun touchY() = gdxHeight - Gdx.input.y.toFloat()
+    private fun pointInRect(r: Rectangle) = r.contains(touchX(), touchY())
+
+    // ---------- ไอเทม: เหรียญ / สิ่งกีดขวาง / หัวใจโบนัส ----------
 
     private fun itemX(i: Int) = tubeX[i] - distanceBetweenTubes / 2f + tubeW / 2f
 
@@ -266,10 +332,12 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         if (level < ITEMS_FROM_LEVEL) return
 
         val obstacleChance = minOf(0.25f + (level - ITEMS_FROM_LEVEL) * 0.05f, 0.45f)
+        val heartChance = if (hearts < MAX_HEARTS) HEART_CHANCE else 0f
         val r = random.nextFloat()
         itemType[i] = when {
             r < obstacleChance -> ITEM_OBSTACLE
             r < obstacleChance + COIN_CHANCE -> ITEM_COIN
+            r < obstacleChance + COIN_CHANCE + heartChance -> ITEM_HEART
             else -> ITEM_NONE
         }
         if (itemType[i] == ITEM_NONE) return
@@ -304,23 +372,40 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
             if (ix < bx - 300f * unit || ix > bx + 300f * unit) continue
             val iy = itemYNow(i)
 
-            if (type == ITEM_COIN) {
-                itemCircle.set(ix, iy, coinSize * 0.5f)
-                if (Intersector.overlaps(birdCircle, itemCircle)) {
-                    itemType[i] = ITEM_NONE
-                    bonus += COIN_VALUE
-                    showPopup("+$COIN_VALUE", Color(1f, 0.9f, 0.2f, 1f))
+            when {
+                type == ITEM_COIN -> {
+                    itemCircle.set(ix, iy, coinSize * 0.5f)
+                    if (Intersector.overlaps(birdCircle, itemCircle)) {
+                        itemType[i] = ITEM_NONE
+                        bonus += COIN_VALUE
+                        showPopup("+$COIN_VALUE", Color(1f, 0.9f, 0.2f, 1f))
+                    }
                 }
-            } else if (type == ITEM_OBSTACLE && invincible <= 0f) {
-                itemCircle.set(ix, iy, obstacleSize * 0.38f)
-                if (Intersector.overlaps(hitCircle, itemCircle)) {
-                    itemType[i] = ITEM_NONE
-                    hearts--
-                    invincible = INVINCIBLE_TIME
-                    showPopup("OUCH!", Color(1f, 0.35f, 0.35f, 1f))
-                    if (hearts <= 0) {
-                        endGame()
-                        return
+                type == ITEM_HEART -> {
+                    itemCircle.set(ix, iy, heartItemW * 0.5f)
+                    if (Intersector.overlaps(birdCircle, itemCircle)) {
+                        itemType[i] = ITEM_NONE
+                        if (hearts < MAX_HEARTS) {
+                            hearts++
+                            showPopup("+1 HP", Color(1f, 0.45f, 0.55f, 1f))
+                        } else {
+                            // หัวใจเต็มอยู่แล้ว แปลงเป็นคะแนนแทนไม่ให้เสียเปล่า
+                            bonus += COIN_VALUE
+                            showPopup("+$COIN_VALUE", Color(1f, 0.9f, 0.2f, 1f))
+                        }
+                    }
+                }
+                type == ITEM_OBSTACLE && invincible <= 0f -> {
+                    itemCircle.set(ix, iy, obstacleSize * 0.38f)
+                    if (Intersector.overlaps(hitCircle, itemCircle)) {
+                        itemType[i] = ITEM_NONE
+                        hearts--
+                        invincible = INVINCIBLE_TIME
+                        showPopup("OUCH!", Color(1f, 0.35f, 0.35f, 1f))
+                        if (hearts <= 0) {
+                            endGame()
+                            return
+                        }
                     }
                 }
             }
@@ -351,15 +436,25 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
             if (ix < -obstacleSize || ix > gdxWidth + obstacleSize) continue
             val iy = itemYNow(i)
 
-            if (type == ITEM_COIN) {
-                // เหรียญหมุน: บีบความกว้างตามเวลา
-                val w = coinSize * maxOf(0.2f, abs(cos(time * 5f + itemPhase[i])))
-                batch.draw(coinTex, ix - w / 2f, iy - coinSize / 2f, w, coinSize)
-            } else {
-                val w = obstacleSize
-                batch.draw(obstacleTex, ix - w / 2f, iy - w / 2f, w / 2f, w / 2f, w, w,
-                        1f, 1f, time * 120f + itemPhase[i] * 57f,
-                        0, 0, obstacleTex.width, obstacleTex.height, false, false)
+            when (type) {
+                ITEM_COIN -> {
+                    // เหรียญหมุน: บีบความกว้างตามเวลา
+                    val w = coinSize * maxOf(0.2f, abs(cos(time * 5f + itemPhase[i])))
+                    batch.draw(coinTex, ix - w / 2f, iy - coinSize / 2f, w, coinSize)
+                }
+                ITEM_HEART -> {
+                    // หัวใจโบนัส เต้นตุบ ๆ เบา ๆ ให้สังเกตง่าย
+                    val s = 0.9f + 0.12f * sin(time * 6f + itemPhase[i])
+                    val w = heartItemW * s
+                    val h = heartItemH * s
+                    batch.draw(heartFull, ix - w / 2f, iy - h / 2f, w, h)
+                }
+                else -> {
+                    val w = obstacleSize
+                    batch.draw(obstacleTex, ix - w / 2f, iy - w / 2f, w / 2f, w / 2f, w, w,
+                            1f, 1f, time * 120f + itemPhase[i] * 57f,
+                            0, 0, obstacleTex.width, obstacleTex.height, false, false)
+                }
             }
         }
     }
@@ -454,6 +549,36 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         }
     }
 
+    private fun drawFilledRect(r: Rectangle, color: Color) {
+        batch.setColor(color)
+        batch.draw(pixel, r.x, r.y, r.width, r.height)
+        batch.setColor(1f, 1f, 1f, 1f)
+    }
+
+    /** ปุ่มสี่เหลี่ยมพื้นเรียบ + ข้อความกลางปุ่ม ใช้กับ Resume/Restart */
+    private fun drawButton(r: Rectangle, label: String, color: Color) {
+        drawFilledRect(r, color)
+        drawText(label, r.x + r.width / 2f, r.y + r.height * 0.62f, 4.2f)
+    }
+
+    /** ไอคอนปุ่ม Pause: กรอบโปร่งมุมขวาบน + แท่งหยุดสองแท่ง */
+    private fun drawPauseButton() {
+        drawFilledRect(pauseButtonRect, Color(0f, 0f, 0f, 0.45f))
+        val barW = pauseButtonRect.width * 0.16f
+        val barH = pauseButtonRect.height * 0.5f
+        val cy = pauseButtonRect.y + pauseButtonRect.height / 2f - barH / 2f
+        batch.draw(pixel, pauseButtonRect.x + pauseButtonRect.width * 0.30f, cy, barW, barH)
+        batch.draw(pixel, pauseButtonRect.x + pauseButtonRect.width * 0.56f, cy, barW, barH)
+    }
+
+    /** ม่านมืดกลางจอ + ปุ่ม Resume / Restart ตอนหยุดเกม */
+    private fun drawPauseOverlay() {
+        drawFilledRect(Rectangle(0f, 0f, gdxWidth.toFloat(), gdxHeight.toFloat()), Color(0f, 0f, 0f, 0.6f))
+        drawCentered("PAUSED", gdxHeight * 0.64f, 7f)
+        drawButton(resumeButtonRect, "RESUME", Color(0.30f, 0.75f, 0.35f, 1f))
+        drawButton(restartButtonRect, "RESTART", Color(0.85f, 0.35f, 0.30f, 1f))
+    }
+
     private fun drawHud() {
         // เว้นพื้นที่ปลอดภัย (รูกล้อง/ขอบจอโค้ง/แถบระบบ) ไม่ให้คะแนนและหัวใจโดนบัง
         val safeTop = Gdx.graphics.safeInsetTop.toFloat()
@@ -467,6 +592,8 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
             drawCentered("LEVEL $level", top - 150f * unit, 3.5f)
         }
 
+        if (gameState == STATE_PLAYING) drawPauseButton()
+
         if (gameState == STATE_READY) {
             drawCentered("TAP TO START", gdxHeight * 0.3f, 4f)
         }
@@ -479,12 +606,14 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
             drawCentered(sub, gdxHeight * 0.7f - 160f * unit, 4f, Color(1f, 1f, 1f, a))
         }
 
-        // ข้อความลอย +3 / OUCH!
+        // ข้อความลอย +3 / OUCH! / +1 HP
         if (popupTimer > 0f && gameState == STATE_PLAYING) {
             val p = 1f - popupTimer / POPUP_TIME
             val c = Color(popupColor.r, popupColor.g, popupColor.b, 1f - p)
             drawText(popupText, popupX, popupY + p * 120f * unit, 5f, c)
         }
+
+        if (gameState == STATE_PAUSED) drawPauseOverlay()
 
         if (gameState == STATE_GAME_OVER) {
             val gw = gameOver.width * unit
@@ -508,6 +637,7 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         obstacleTex.dispose()
         heartFull.dispose()
         heartEmpty.dispose()
+        pixel.dispose()
         birds.forEach { it.dispose() }
         font.dispose()
     }
@@ -516,10 +646,12 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         private const val STATE_READY = 0
         private const val STATE_PLAYING = 1
         private const val STATE_GAME_OVER = 2
+        private const val STATE_PAUSED = 3
 
         private const val ITEM_NONE = 0
         private const val ITEM_COIN = 1
         private const val ITEM_OBSTACLE = 2
+        private const val ITEM_HEART = 3
 
         private const val REFERENCE_HEIGHT = 1920f
         private const val GRAVITY = 2f
@@ -537,9 +669,10 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         private const val RESTART_DELAY = 0.6f
 
         private const val MAX_HEARTS = 3            // หัวใจเริ่มต้น
-        private const val ITEMS_FROM_LEVEL = 2      // เหรียญ/สิ่งกีดขวางเริ่มที่ด่านนี้
-        private const val COIN_VALUE = 3            // คะแนนต่อเหรียญ
+        private const val ITEMS_FROM_LEVEL = 2      // เหรียญ/สิ่งกีดขวาง/หัวใจ เริ่มที่ด่านนี้
+        private const val COIN_VALUE = 3            // คะแนนต่อเหรียญ (และต่อหัวใจส่วนเกินตอนเต็มแล้ว)
         private const val COIN_CHANCE = 0.40f       // โอกาสมีเหรียญ (ต่อช่อง)
+        private const val HEART_CHANCE = 0.08f      // โอกาสมีหัวใจโบนัส (เฉพาะตอนหัวใจไม่เต็ม)
         private const val INVINCIBLE_TIME = 1.5f    // วินาทีที่ไม่โดนซ้ำหลังโดนชน
         private const val OBSTACLE_BOB = 70f        // ระยะที่สิ่งกีดขวางลอยขึ้นลง
         private const val POPUP_TIME = 0.9f
