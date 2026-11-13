@@ -9,4 +9,8 @@
     <string name="char_classic">Classic</string>
     <string name="char_red">Red Bird</string>
     <string name="char_blue">Blue Bird</string>
+    <string name="char_bear">Bear</string>
+    <string name="char_cat">Cat</string>
+    <string name="char_frog">Frog</string>
+    <string name="char_pig">Pig</string>
 </resources>

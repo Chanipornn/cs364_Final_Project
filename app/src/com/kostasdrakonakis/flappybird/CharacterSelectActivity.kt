@@ -1,7 +1,6 @@
 package com.kostasdrakonakis.flappybird
 
 import android.app.Activity
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
@@ -47,7 +46,7 @@ class CharacterSelectActivity : Activity() {
         val skin = Characters.list[index]
         txtName.setText(skin.nameRes)
         // โหลดจาก assets ชุดเดียวกับที่เกมใช้
-        assets.open(skin.frameA).use { img.setImageBitmap(BitmapFactory.decodeStream(it)) }
+        img.setImageDrawable(Characters.loadDrawable(this, skin.frameA))
     }
 
     companion object {

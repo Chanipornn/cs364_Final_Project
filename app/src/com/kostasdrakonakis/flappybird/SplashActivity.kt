@@ -18,7 +18,6 @@ package com.kostasdrakonakis.flappybird
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
@@ -41,8 +40,7 @@ class SplashActivity : Activity() {
         super.onResume()
         // กลับจากหน้าเลือกตัวละคร ให้อัพเดตนกบนเมนู
         val skin = Characters.list[GamePrefs.getCharacter(this)]
-        assets.open(skin.frameA).use {
-            findViewById<ImageView>(R.id.imgMenuBird).setImageBitmap(BitmapFactory.decodeStream(it))
-        }
+        findViewById<ImageView>(R.id.imgMenuBird)
+            .setImageDrawable(Characters.loadDrawable(this, skin.frameA))
     }
 }

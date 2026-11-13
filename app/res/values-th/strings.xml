@@ -8,4 +8,8 @@
     <string name="char_classic">คลาสสิก</string>
     <string name="char_red">นกแดง</string>
     <string name="char_blue">นกน้ำเงิน</string>
+    <string name="char_bear">หมี</string>
+    <string name="char_cat">แมว</string>
+    <string name="char_frog">กบ</string>
+    <string name="char_pig">หมู</string>
 </resources>
