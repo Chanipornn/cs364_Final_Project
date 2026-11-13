@@ -31,7 +31,10 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
+class FlappyBird(
+    private val characterIndex: Int = 0,
+    private val nightMode: Boolean = false     // ธีมกลางคืน
+) : ApplicationAdapter() {
 
     private lateinit var batch: SpriteBatch
     private lateinit var background: Texture
@@ -106,6 +109,7 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
 
     // ระบบด่าน
     private val bgTint = Color(Color.WHITE)
+    private val drawTint = Color()      // สีที่ใช้วาดจริง (bgTint + กลางคืน)
     private var tubeCur = 0          // ชุดสีเสาปัจจุบัน
     private var tubePrev = 0         // ชุดสีเสาก่อนหน้า (ใช้ตอนค่อย ๆ จาง)
     private var tubeFade = 1f        // 0..1 ความคืบหน้าการเปลี่ยนสีเสา
@@ -186,7 +190,10 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         update(dt, f)
 
         batch.begin()
-        batch.color = bgTint
+        // ถ้ากลางคืน คูณสีให้มืดลง
+        drawTint.set(bgTint)
+        if (nightMode) drawTint.mul(NIGHT_TINT)
+        batch.color = drawTint
         batch.draw(background, 0f, 0f, gdxWidth.toFloat(), gdxHeight.toFloat())
 
         // เปลี่ยนสีเสาแบบจางข้ามกัน: วาดสีเก่าก่อน แล้วซ้อนสีใหม่ด้วยความทึบที่ค่อย ๆ เพิ่ม
@@ -676,6 +683,8 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         private const val INVINCIBLE_TIME = 1.5f    // วินาทีที่ไม่โดนซ้ำหลังโดนชน
         private const val OBSTACLE_BOB = 70f        // ระยะที่สิ่งกีดขวางลอยขึ้นลง
         private const val POPUP_TIME = 0.9f
+        // ธีมกลางคืน คูณทับสีพื้นหลังให้มืดอมน้ำเงิน
+        private val NIGHT_TINT = Color(0.45f, 0.50f, 0.80f, 1f)
 
         // สีพื้นหลังของแต่ละด่าน (คูณทับภาพพื้นหลัง) วนซ้ำเมื่อเกินด่านสุดท้าย
         // สีเสาของแต่ละด่านคือรูป toptube_N.png / bottomtube_N.png ใน assets

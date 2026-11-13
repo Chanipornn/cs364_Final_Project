@@ -17,6 +17,7 @@ package com.kostasdrakonakis.flappybird
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -25,12 +26,27 @@ import android.widget.ImageView
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : Activity() {
 
+    private var settingsKey = ""
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(SettingsHelper.wrap(newBase))
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+
+        settingsKey = SettingsHelper.currentKey(this)
+
+        findViewById<Button>(R.id.btnSettings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
         findViewById<Button>(R.id.playButton).setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
         }
+
         findViewById<Button>(R.id.btnCharacter).setOnClickListener {
             startActivity(Intent(this, CharacterSelectActivity::class.java))
         }
@@ -38,6 +54,12 @@ class SplashActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+
+        // กลับจากหน้า Settings แล้วภาษา/ธีมเปลี่ยน -> สร้างหน้าใหม่
+        if (settingsKey != SettingsHelper.currentKey(this)) {
+            recreate()
+            return
+        }
         // กลับจากหน้าเลือกตัวละคร ให้อัพเดตนกบนเมนู
         val skin = Characters.list[GamePrefs.getCharacter(this)]
         findViewById<ImageView>(R.id.imgMenuBird)

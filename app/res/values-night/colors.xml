@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ฟิล์มสีน้ำเงินเข้มโปร่งแสงทับพื้นหลัง ในโหมดกลางคืน  -->
+    <color name="menu_overlay">#990A1030</color>
+</resources>
