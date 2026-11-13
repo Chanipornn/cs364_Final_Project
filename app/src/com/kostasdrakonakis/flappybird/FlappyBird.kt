@@ -46,8 +46,8 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
     private val hitCircle = Circle()
     private val itemCircle = Circle()
     private lateinit var font: BitmapFont
-    private lateinit var topTube: Texture
-    private lateinit var bottomTube: Texture
+    private lateinit var topTubes: Array<Texture>      // เสาแต่ละสีตามด่าน
+    private lateinit var bottomTubes: Array<Texture>
     private lateinit var random: Random
     private val layout = GlyphLayout()
 
@@ -97,7 +97,9 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
 
     // ระบบด่าน
     private val bgTint = Color(Color.WHITE)
-    private val tubeTint = Color(Color.WHITE)
+    private var tubeCur = 0          // ชุดสีเสาปัจจุบัน
+    private var tubePrev = 0         // ชุดสีเสาก่อนหน้า (ใช้ตอนค่อย ๆ จาง)
+    private var tubeFade = 1f        // 0..1 ความคืบหน้าการเปลี่ยนสีเสา
     private var bannerTimer = 0f
     private var gameOverTimer = 0f
     private var blinkTimer = 0f
@@ -122,13 +124,14 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         gdxWidth = Gdx.graphics.width
         unit = gdxHeight / REFERENCE_HEIGHT
 
-        topTube = Texture("toptube.png")
-        bottomTube = Texture("bottomtube.png")
+        // ชุด 0 = เสาเดิม (เขียว) ชุด 1..4 = แดง ทอง ฟ้า ส้ม
+        topTubes = Array(TUBE_SKINS) { Texture(if (it == 0) "toptube.png" else "toptube_$it.png") }
+        bottomTubes = Array(TUBE_SKINS) { Texture(if (it == 0) "bottomtube.png" else "bottomtube_$it.png") }
         random = Random()
 
         gap = GAP * unit
-        tubeW = topTube.width * unit
-        tubeH = topTube.height * unit
+        tubeW = topTubes[0].width * unit
+        tubeH = topTubes[0].height * unit
         birdW = birds[0].width * unit
         birdH = birds[0].height * unit
         coinSize = coinTex.width * unit
@@ -153,13 +156,11 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         batch.color = bgTint
         batch.draw(background, 0f, 0f, gdxWidth.toFloat(), gdxHeight.toFloat())
 
-        batch.color = tubeTint
-        for (i in 0 until numberOfTubes) {
-            batch.draw(topTube, tubeX[i], topTubeRectangles[i].y, tubeW, tubeH)
-            batch.draw(bottomTube, tubeX[i], bottomTubeRectangles[i].y, tubeW, tubeH)
-        }
+        // เปลี่ยนสีเสาแบบจางข้ามกัน: วาดสีเก่าก่อน แล้วซ้อนสีใหม่ด้วยความทึบที่ค่อย ๆ เพิ่ม
+        if (tubeFade < 1f) drawTubes(tubePrev, 1f)
+        drawTubes(tubeCur, tubeFade)
 
-        batch.color = Color.WHITE
+        batch.setColor(1f, 1f, 1f, 1f)
         drawItems()
 
         // นกกะพริบตอนมีภูมิคุ้มกัน
@@ -182,6 +183,7 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         if (bannerTimer > 0f) bannerTimer -= dt
         if (popupTimer > 0f) popupTimer -= dt
         if (invincible > 0f) invincible -= dt
+        if (tubeFade < 1f) tubeFade = minOf(1f, tubeFade + dt / TUBE_FADE_TIME)
         blinkTimer += dt
 
         when (gameState) {
@@ -333,6 +335,14 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         popupY = birdY + birdH + 60f * unit
     }
 
+    private fun drawTubes(skin: Int, alpha: Float) {
+        batch.setColor(1f, 1f, 1f, alpha)
+        for (i in 0 until numberOfTubes) {
+            batch.draw(topTubes[skin], tubeX[i], topTubeRectangles[i].y, tubeW, tubeH)
+            batch.draw(bottomTubes[skin], tubeX[i], bottomTubeRectangles[i].y, tubeW, tubeH)
+        }
+    }
+
     private fun drawItems() {
         for (i in 0 until numberOfTubes) {
             val type = itemType[i]
@@ -366,16 +376,17 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         if (newLevel != level) {
             level = newLevel
             bannerTimer = BANNER_TIME
+            tubePrev = tubeCur
+            tubeCur = (level - 1) % TUBE_SKINS
+            tubeFade = 0f
             if (level >= ITEMS_FROM_LEVEL) populateOffscreenItems()
         }
     }
 
-    /** ค่อย ๆ เปลี่ยนสีพื้นหลัง/ท่อไปหาสีของด่านปัจจุบัน */
+    /** ค่อย ๆ เปลี่ยนสีพื้นหลังไปหาสีของด่านปัจจุบัน */
     private fun updateTint(f: Float) {
-        val p = PALETTES[(level - 1) % PALETTES.size]
         val t = minOf(TINT_SPEED * f, 1f)
-        bgTint.lerp(p.bg, t)
-        tubeTint.lerp(p.tube, t)
+        bgTint.lerp(PALETTES[(level - 1) % PALETTES.size], t)
     }
 
     // ---------- สถานะเกม ----------
@@ -396,8 +407,10 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         velocity = 0f
         bannerTimer = 0f
         flapState = 0
-        bgTint.set(PALETTES[0].bg)
-        tubeTint.set(PALETTES[0].tube)
+        bgTint.set(PALETTES[0])
+        tubeCur = 0
+        tubePrev = 0
+        tubeFade = 1f
         birdY = gdxHeight / 2f - birdH / 2f
 
         for (i in 0 until numberOfTubes) {
@@ -486,8 +499,8 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         batch.dispose()
         background.dispose()
         gameOver.dispose()
-        topTube.dispose()
-        bottomTube.dispose()
+        topTubes.forEach { it.dispose() }
+        bottomTubes.forEach { it.dispose() }
         coinTex.dispose()
         obstacleTex.dispose()
         heartFull.dispose()
@@ -495,8 +508,6 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         birds.forEach { it.dispose() }
         font.dispose()
     }
-
-    private class Palette(val bg: Color, val tube: Color)
 
     companion object {
         private const val STATE_READY = 0
@@ -517,6 +528,8 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         private const val SPEED_STEP = 0.15f        // เร็วขึ้น 15% ต่อด่าน
         private const val MAX_SPEED_MULTIPLIER = 2.5f
         private const val TINT_SPEED = 0.03f
+        private const val TUBE_SKINS = 5            // จำนวนชุดสีเสา (เขียว แดง ทอง ฟ้า ส้ม)
+        private const val TUBE_FADE_TIME = 1f       // วินาทีที่ใช้จางเปลี่ยนสีเสา
         private const val BANNER_TIME = 2f
         private const val RESTART_DELAY = 0.6f
 
@@ -528,13 +541,14 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
         private const val OBSTACLE_BOB = 70f        // ระยะที่สิ่งกีดขวางลอยขึ้นลง
         private const val POPUP_TIME = 0.9f
 
-        // สีของแต่ละด่าน (คูณทับภาพพื้นหลัง/ท่อ) วนซ้ำเมื่อเกินด่านสุดท้าย
+        // สีพื้นหลังของแต่ละด่าน (คูณทับภาพพื้นหลัง) วนซ้ำเมื่อเกินด่านสุดท้าย
+        // สีเสาของแต่ละด่านคือรูป toptube_N.png / bottomtube_N.png ใน assets
         private val PALETTES = arrayOf(
-            Palette(Color(1.00f, 1.00f, 1.00f, 1f), Color(1.00f, 1.00f, 1.00f, 1f)), // 1 ฟ้าปกติ
-            Palette(Color(1.00f, 0.80f, 0.55f, 1f), Color(1.00f, 0.90f, 0.60f, 1f)), // 2 ส้มพระอาทิตย์ตก
-            Palette(Color(0.85f, 0.60f, 1.00f, 1f), Color(0.80f, 0.70f, 1.00f, 1f)), // 3 ม่วง
-            Palette(Color(1.00f, 0.50f, 0.55f, 1f), Color(1.00f, 0.70f, 0.60f, 1f)), // 4 แดงอมชมพู
-            Palette(Color(0.40f, 0.45f, 0.75f, 1f), Color(0.55f, 0.65f, 0.80f, 1f))  // 5 กลางคืน
+            Color(1.00f, 1.00f, 1.00f, 1f), // 1 ฟ้าปกติ      + เสาเขียว
+            Color(1.00f, 0.80f, 0.55f, 1f), // 2 ส้มพระอาทิตย์ตก + เสาแดง
+            Color(0.85f, 0.60f, 1.00f, 1f), // 3 ม่วง          + เสาทอง
+            Color(1.00f, 0.50f, 0.55f, 1f), // 4 แดงอมชมพู     + เสาฟ้า
+            Color(0.40f, 0.45f, 0.75f, 1f)  // 5 กลางคืน       + เสาส้ม
         )
     }
 }
