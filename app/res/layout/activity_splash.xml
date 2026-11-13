@@ -10,9 +10,17 @@
         android:scaleType="centerCrop"
         android:src="@drawable/bg_menu" />
 
-    <LinearLayout
+    <!-- ScrollView: จอเตี้ยหรือผู้ใช้ตั้งตัวอักษรใหญ่ ปุ่มจะเลื่อนดูได้ ไม่ล้นจอ
+         fillViewport: จอปกติยังจัดกึ่งกลางเหมือนเดิม -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
         android:padding="24dp">
@@ -55,4 +63,5 @@
         <!-- ปุ่ม High Score / Settings / Exit ให้คนที่ 2 และ 3 เพิ่มตรงนี้
              แนะนำ: High Score = GameButton.Blue, Settings = GameButton.Blue, Exit/Clear = GameButton.Red -->
     </LinearLayout>
+    </ScrollView>
 </FrameLayout>

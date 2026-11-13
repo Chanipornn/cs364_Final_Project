@@ -443,11 +443,11 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
     private fun drawCentered(text: String, y: Float, scale: Float, color: Color = Color.WHITE) =
         drawText(text, gdxWidth / 2f, y, scale, color)
 
-    private fun drawHearts() {
+    private fun drawHearts(safeTop: Float, safeLeft: Float) {
         val hw = heartFull.width * unit
         val hh = heartFull.height * unit
-        val startX = 36f * unit
-        val y = gdxHeight - hh - 60f * unit
+        val startX = safeLeft + 36f * unit
+        val y = gdxHeight - safeTop - hh - 60f * unit
         for (i in 0 until MAX_HEARTS) {
             val tex = if (i < hearts) heartFull else heartEmpty
             batch.draw(tex, startX + i * (hw + 12f * unit), y, hw, hh)
@@ -455,9 +455,12 @@ class FlappyBird(private val characterIndex: Int = 0) : ApplicationAdapter() {
     }
 
     private fun drawHud() {
-        val top = gdxHeight - 80f * unit
+        // เว้นพื้นที่ปลอดภัย (รูกล้อง/ขอบจอโค้ง/แถบระบบ) ไม่ให้คะแนนและหัวใจโดนบัง
+        val safeTop = Gdx.graphics.safeInsetTop.toFloat()
+        val safeLeft = Gdx.graphics.safeInsetLeft.toFloat()
+        val top = gdxHeight - safeTop - 80f * unit
 
-        drawHearts()
+        drawHearts(safeTop, safeLeft)
 
         if (gameState != STATE_GAME_OVER) {
             drawCentered(score.toString(), top, 9f)
