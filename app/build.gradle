@@ -1,3 +1,4 @@
+
 apply plugin: 'com.android.application'
 
 android {
@@ -22,21 +23,29 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
+
             java.srcDirs = ['src']
+            java.includes = ['**/*.java', '**/*.kt']
+
             aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
             jniLibs.srcDirs = ['libs']
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
         targetCompatibility JavaVersion.VERSION_21
     }
+
     kotlin {
         jvmToolchain(21)
     }
+}
+
+configurations {
+    natives
 }
 
 dependencies {
@@ -46,14 +55,42 @@ dependencies {
     implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
     implementation "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
 
-    runtimeOnly "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
-    runtimeOnly "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
-    runtimeOnly "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
-    runtimeOnly "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
 
-    runtimeOnly "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi-v7a"
-    runtimeOnly "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-arm64-v8a"
-    runtimeOnly "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86"
-    runtimeOnly "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86_64"
+    natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86"
+    natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86_64"
+}
 
+tasks.register('copyAndroidNatives') {
+    doLast {
+        def abiFolders = [
+                'arm64-v8a',
+                'armeabi-v7a',
+                'x86',
+                'x86_64'
+        ]
+
+        configurations.natives.files.each { jar ->
+            def abi = jar.name.replaceAll(
+                    '.*natives-', ''
+            ).replace('.jar', '')
+
+            if (abiFolders.contains(abi)) {
+                copy {
+                    from zipTree(jar)
+                    into file("libs/${abi}")
+                    include '*.so'
+                }
+            }
+        }
+    }
+}
+
+tasks.named('preBuild') {
+    dependsOn 'copyAndroidNatives'
 }
