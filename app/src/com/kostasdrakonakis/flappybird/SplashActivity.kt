@@ -18,8 +18,10 @@ package com.kostasdrakonakis.flappybird
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageView
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : Activity() {
@@ -32,6 +34,15 @@ class SplashActivity : Activity() {
         }
         findViewById<Button>(R.id.btnCharacter).setOnClickListener {
             startActivity(Intent(this, CharacterSelectActivity::class.java))
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // กลับจากหน้าเลือกตัวละคร ให้อัพเดตนกบนเมนู
+        val skin = Characters.list[GamePrefs.getCharacter(this)]
+        assets.open(skin.frameA).use {
+            findViewById<ImageView>(R.id.imgMenuBird).setImageBitmap(BitmapFactory.decodeStream(it))
         }
     }
 }

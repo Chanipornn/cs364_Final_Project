@@ -1,32 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/white"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textColor="#000000"
-        android:textSize="36sp"
-        android:textStyle="bold" />
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_menu" />
 
-    <Button
-        android:id="@+id/playButton"
-        android:layout_width="240dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/play_game" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <Button
-        android:id="@+id/btnCharacter"
-        android:layout_width="240dp"
-        android:layout_height="wrap_content"
-        android:text="@string/select_character" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shadowColor="#80000000"
+            android:shadowDx="4"
+            android:shadowDy="4"
+            android:shadowRadius="6"
+            android:text="@string/app_name"
+            android:textColor="#FFFFFF"
+            android:textSize="44sp"
+            android:textStyle="bold" />
 
-    <!-- ปุ่ม High Score / Settings / Exit ให้คนที่ 2 และ 3 เพิ่มตรงนี้ -->
-</LinearLayout>
+        <!-- แสดงตัวละครที่เลือกอยู่ -->
+        <ImageView
+            android:id="@+id/imgMenuBird"
+            android:layout_width="120dp"
+            android:layout_height="90dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            android:contentDescription="@string/select_character"
+            android:scaleType="fitCenter" />
+
+        <Button
+            android:id="@+id/playButton"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:text="@string/play_game" />
+
+        <Button
+            android:id="@+id/btnCharacter"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:text="@string/select_character" />
+
+        <!-- ปุ่ม High Score / Settings / Exit ให้คนที่ 2 และ 3 เพิ่มตรงนี้ -->
+    </LinearLayout>
+</FrameLayout>
