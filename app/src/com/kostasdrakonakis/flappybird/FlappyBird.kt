@@ -94,6 +94,7 @@ class FlappyBird(
     // หัวใจ / ภูมิคุ้มกันชั่วคราวหลังโดนชน
     private var hearts = MAX_HEARTS
     private var invincible = 0f
+    private var respawnHover = 0f      // ช่วงสั้น ๆ หลัง Respawn ที่นกลอยนิ่งก่อนเริ่มตก ให้ผู้เล่นตั้งตัวทัน
 
     // ปุ่ม Pause ระหว่างเล่น + ปุ่ม Resume/Restart ตอนหยุดอยู่
     private val pauseButtonRect = Rectangle()
@@ -237,6 +238,7 @@ class FlappyBird(
                     flapState = 1 - flapState
                 }
                 if (invincible > 0f) invincible -= dt
+                if (respawnHover > 0f) respawnHover -= dt
                 if (tubeFade < 1f) tubeFade = minOf(1f, tubeFade + dt / TUBE_FADE_TIME)
 
                 if (Gdx.input.justTouched()) {
@@ -245,6 +247,7 @@ class FlappyBird(
                         return
                     }
                     velocity = JUMP * unit
+                    respawnHover = 0f
                 }
 
                 val speed = TUBE_VELOCITY * unit * speedMultiplier()
@@ -259,8 +262,12 @@ class FlappyBird(
                     updateTubeRectangles(i)
                 }
 
-                velocity += GRAVITY * unit * f
-                birdY -= velocity * f
+                if (respawnHover > 0f) {
+                    velocity = 0f       // ลอยนิ่งชั่วครู่หลัง Respawn
+                } else {
+                    velocity += GRAVITY * unit * f
+                    birdY -= velocity * f
+                }
                 val maxY = gdxHeight - birdH
                 if (birdY > maxY) {
                     birdY = maxY
@@ -268,8 +275,13 @@ class FlappyBird(
                 }
                 if (birdY <= 0f) {
                     birdY = 0f
-                    endGame()
-                    return
+                    if (invincible > 0f) {
+                        // ระหว่างอมตะ ตกพื้นไม่เสียหัวใจ แค่หยุดอยู่บนพื้น
+                        if (velocity > 0f) velocity = 0f
+                    } else {
+                        // ตกพื้น = เสีย 1 หัวใจ แล้ว Respawn (หมดหัวใจจึง Game Over)
+                        if (!damageBird("OUCH!", nearestTubeIndex())) return
+                    }
                 }
 
                 // นับคะแนนเมื่อผ่านท่อ
@@ -279,13 +291,15 @@ class FlappyBird(
                     checkLevelUp()
                 }
 
-                // ชนท่อ = จบเกมทันที
+                // ชนท่อ = เสีย 1 หัวใจ + Respawn (ข้ามการตรวจชนระหว่างอมตะ)
                 birdCircle.set(gdxWidth / 2f, birdY + birdH / 2f, birdW / 2f)
-                for (i in 0 until numberOfTubes) {
-                    if (Intersector.overlaps(birdCircle, topTubeRectangles[i]) ||
-                        Intersector.overlaps(birdCircle, bottomTubeRectangles[i])) {
-                        endGame()
-                        return
+                if (invincible <= 0f) {
+                    for (i in 0 until numberOfTubes) {
+                        if (Intersector.overlaps(birdCircle, topTubeRectangles[i]) ||
+                            Intersector.overlaps(birdCircle, bottomTubeRectangles[i])) {
+                            if (!damageBird("OUCH!", i)) return
+                            break
+                        }
                     }
                 }
 
@@ -406,13 +420,9 @@ class FlappyBird(
                     itemCircle.set(ix, iy, obstacleSize * 0.38f)
                     if (Intersector.overlaps(hitCircle, itemCircle)) {
                         itemType[i] = ITEM_NONE
-                        hearts--
-                        invincible = INVINCIBLE_TIME
-                        showPopup("OUCH!", Color(1f, 0.35f, 0.35f, 1f))
-                        if (hearts <= 0) {
-                            endGame()
-                            return
-                        }
+                        // ชนสิ่งกีดขวางกลางอากาศ: เสียหัวใจ + อมตะ แต่ไม่ต้องย้ายนก
+                        damageBird("OUCH!", respawnTube = -1)
+                        return
                     }
                 }
             }
@@ -493,6 +503,49 @@ class FlappyBird(
 
     // ---------- สถานะเกม ----------
 
+    /**
+     * นกโดนความเสียหาย 1 ครั้ง (ชนท่อ / ตกพื้น / ชนสิ่งกีดขวาง)
+     * - ลด HP ครั้งละ 1
+     * - HP ยังเหลือ: เปิดอมตะชั่วคราว (INVINCIBLE_TIME) กันเสียซ้ำ และ Respawn นกถ้าระบุ respawnTube
+     * - HP = 0: Game Over
+     * @param respawnTube index ของท่อที่จะเอานกไปวางกลางช่องว่าง (-1 = ไม่ย้ายนก)
+     * @return true ถ้าเกมยังเล่นต่อได้, false ถ้า Game Over แล้ว
+     */
+    private fun damageBird(message: String, respawnTube: Int): Boolean {
+        if (invincible > 0f || gameState != STATE_PLAYING) return true
+        hearts = maxOf(hearts - 1, 0)
+        if (hearts <= 0) {
+            endGame()
+            return false
+        }
+        invincible = INVINCIBLE_TIME
+        showPopup(message, Color(1f, 0.35f, 0.35f, 1f))
+        if (respawnTube >= 0) respawnBird(respawnTube)
+        return true
+    }
+
+    /** Respawn: วางนกกลางช่องว่างของท่อ tube พร้อมหยุดความเร็ว เพื่อไม่ให้ชนซ้ำทันที (คะแนน/ด่าน/ท่อคงเดิม) */
+    private fun respawnBird(tube: Int) {
+        val center = gdxHeight / 2f + tubeOffset[tube]
+        birdY = (center - birdH / 2f).coerceIn(0f, gdxHeight - birdH)
+        velocity = 0f
+        respawnHover = RESPAWN_HOVER_TIME
+    }
+
+    /** ท่อที่อยู่ใกล้แนวนกที่สุด (ใช้เลือกจุด Respawn ตอนตกพื้น) โดยเลือกเฉพาะท่อที่ยังไม่พ้นนกไป */
+    private fun nearestTubeIndex(): Int {
+        val bx = gdxWidth / 2f
+        var best = 0
+        var bestDist = Float.MAX_VALUE
+        for (i in 0 until numberOfTubes) {
+            val right = tubeX[i] + tubeW
+            if (right < bx - birdW / 2f) continue      // ท่อที่ผ่านไปแล้ว
+            val d = abs(tubeX[i] + tubeW / 2f - bx)
+            if (d < bestDist) { bestDist = d; best = i }
+        }
+        return best
+    }
+
     private fun endGame() {
         gameState = STATE_GAME_OVER
         gameOverTimer = 0f
@@ -504,6 +557,7 @@ class FlappyBird(
         level = 1
         hearts = MAX_HEARTS
         invincible = 0f
+        respawnHover = 0f
         popupTimer = 0f
         scoringTube = 0
         velocity = 0f
@@ -681,6 +735,7 @@ class FlappyBird(
         private const val COIN_CHANCE = 0.40f       // โอกาสมีเหรียญ (ต่อช่อง)
         private const val HEART_CHANCE = 0.08f      // โอกาสมีหัวใจโบนัส (เฉพาะตอนหัวใจไม่เต็ม)
         private const val INVINCIBLE_TIME = 1.5f    // วินาทีที่ไม่โดนซ้ำหลังโดนชน
+        private const val RESPAWN_HOVER_TIME = 0.5f // วินาทีที่นกลอยนิ่งหลัง Respawn (แตะเพื่อกระโดดได้ทันที)
         private const val OBSTACLE_BOB = 70f        // ระยะที่สิ่งกีดขวางลอยขึ้นลง
         private const val POPUP_TIME = 0.9f
         // ธีมกลางคืน คูณทับสีพื้นหลังให้มืดอมน้ำเงิน
