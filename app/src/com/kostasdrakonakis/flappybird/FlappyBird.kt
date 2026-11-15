@@ -69,6 +69,8 @@ class FlappyBird(
     private var level: Int = 1
     private var scoringTube: Int = 0
     private var gameState: Int = STATE_READY
+    @Volatile private var currentGameState: Int = STATE_READY
+    @Volatile private var isProcessingBackPress: Boolean = false
     private val numberOfTubes: Int = 4
     private var gdxHeight: Int = 0
     private var gdxWidth: Int = 0
@@ -234,6 +236,7 @@ class FlappyBird(
                 if (Gdx.input.justTouched()) {
                     velocity = JUMP * unit
                     gameState = STATE_PLAYING
+                    currentGameState = STATE_PLAYING
                 }
             }
 
@@ -253,6 +256,7 @@ class FlappyBird(
                 if (Gdx.input.justTouched()) {
                     if (pointInRect(pauseButtonRect)) {
                         gameState = STATE_PAUSED
+                        currentGameState = STATE_PAUSED
                         return
                     }
                     velocity = JUMP * unit
@@ -320,6 +324,7 @@ class FlappyBird(
                 if (Gdx.input.justTouched()) {
                     if (pointInRect(resumeButtonRect)) {
                         gameState = STATE_PLAYING
+                        currentGameState = STATE_PLAYING
                     } else if (pointInRect(restartButtonRect)) {
                         GamePrefs.clearSavedGame(context)
                         resetGame()
@@ -341,7 +346,10 @@ class FlappyBird(
 
     /** เกมถูกส่งไปพักเบื้องหลัง (กด Home / สลับแอป ฯลฯ) ถ้ากำลังเล่นอยู่ ให้หยุดและรอผู้เล่นกดเล่นต่อเอง */
     override fun pause() {
-        if (gameState == STATE_PLAYING) gameState = STATE_PAUSED
+        if (gameState == STATE_PLAYING) {
+            gameState = STATE_PAUSED
+            currentGameState = STATE_PAUSED
+        }
         if (gameState == STATE_PAUSED) {
             GamePrefs.saveGameState(context, captureGameState())
         }
@@ -562,6 +570,7 @@ class FlappyBird(
 
     private fun endGame() {
         gameState = STATE_GAME_OVER
+        currentGameState = STATE_GAME_OVER
         gameOverTimer = 0f
         GamePrefs.clearSavedGame(context)
         if (score > highScore) {
@@ -595,6 +604,7 @@ class FlappyBird(
             updateTubeRectangles(i)
         }
         gameState = STATE_READY
+        currentGameState = STATE_READY
     }
 
     private fun randomOffset() = (random.nextFloat() - 0.5f) * (gdxHeight.toFloat() - gap - 200f * unit)
@@ -667,6 +677,30 @@ class FlappyBird(
         popupTimer = 0f
         bannerTimer = 0f
         gameState = STATE_PAUSED
+        currentGameState = STATE_PAUSED
+    }
+
+    // ---------- การจัดการปุ่ม Back จาก Android Activity (Main UI Thread) ----------
+
+    fun handleBackPress(): Boolean {
+        if (isProcessingBackPress) return true
+
+        if (currentGameState == STATE_PLAYING) {
+            isProcessingBackPress = true
+            Gdx.app.postRunnable {
+                try {
+                    if (gameState == STATE_PLAYING) {
+                        gameState = STATE_PAUSED
+                        currentGameState = STATE_PAUSED
+                        GamePrefs.saveGameState(context, captureGameState())
+                    }
+                } finally {
+                    isProcessingBackPress = false
+                }
+            }
+            return true
+        }
+        return false
     }
 
     // ---------- วาดข้อความ / HUD ----------

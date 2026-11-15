@@ -15,6 +15,7 @@
  */
 package com.kostasdrakonakis.flappybird
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 
@@ -23,13 +24,23 @@ import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration
 
 class MainActivity : AndroidApplication() {
 
+    private lateinit var game: FlappyBird
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(SettingsHelper.wrap(newBase))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val game = FlappyBird(this, GamePrefs.getCharacter(this), GamePrefs.isNightMode(this))
+        game = FlappyBird(this, GamePrefs.getCharacter(this), GamePrefs.isNightMode(this))
         initialize(game, AndroidApplicationConfiguration())
+    }
+
+    @SuppressLint("BackPressedIsMovedToBack")
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
+    override fun onBackPressed() {
+        if (!::game.isInitialized || !game.handleBackPress()) {
+            super.onBackPressed()
+        }
     }
 }
