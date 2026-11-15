@@ -183,7 +183,12 @@ class FlappyBird(
         restartButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f - ch - 30f * unit, cw, ch)
 
         highScore = GamePrefs.getHighScore(context)
-        resetGame()
+        val savedState = GamePrefs.loadGameState(context)
+        if (savedState != null) {
+            restoreGameState(savedState)
+        } else {
+            resetGame()
+        }
     }
 
     override fun render() {
@@ -316,6 +321,7 @@ class FlappyBird(
                     if (pointInRect(resumeButtonRect)) {
                         gameState = STATE_PLAYING
                     } else if (pointInRect(restartButtonRect)) {
+                        GamePrefs.clearSavedGame(context)
                         resetGame()
                     }
                 }
@@ -326,6 +332,7 @@ class FlappyBird(
                 gameOverTimer += dt
                 // รอสั้น ๆ ก่อนรับการแตะ ป้องกันกดรีสตาร์ทโดยไม่ตั้งใจ
                 if (gameOverTimer > RESTART_DELAY && Gdx.input.justTouched()) {
+                    GamePrefs.clearSavedGame(context)
                     resetGame()
                 }
             }
@@ -335,6 +342,9 @@ class FlappyBird(
     /** เกมถูกส่งไปพักเบื้องหลัง (กด Home / สลับแอป ฯลฯ) ถ้ากำลังเล่นอยู่ ให้หยุดและรอผู้เล่นกดเล่นต่อเอง */
     override fun pause() {
         if (gameState == STATE_PLAYING) gameState = STATE_PAUSED
+        if (gameState == STATE_PAUSED) {
+            GamePrefs.saveGameState(context, captureGameState())
+        }
     }
 
     // ---------- ปุ่มสัมผัส ----------
@@ -553,6 +563,7 @@ class FlappyBird(
     private fun endGame() {
         gameState = STATE_GAME_OVER
         gameOverTimer = 0f
+        GamePrefs.clearSavedGame(context)
         if (score > highScore) {
             highScore = score
             GamePrefs.setHighScore(context, highScore)
@@ -593,6 +604,69 @@ class FlappyBird(
         val bottomY = gdxHeight / 2f - gap / 2f - tubeH + tubeOffset[i]
         topTubeRectangles[i].set(tubeX[i], topY, tubeW, tubeH)
         bottomTubeRectangles[i].set(tubeX[i], bottomY, tubeW, tubeH)
+    }
+
+    // ---------- บันทึก / กู้คืนสถานะเกม ----------
+
+    private fun captureGameState(): GameStateData {
+        return GameStateData(
+            passed = passed,
+            bonus = bonus,
+            level = level,
+            scoringTube = scoringTube,
+            birdY = birdY,
+            velocity = velocity,
+            hearts = hearts,
+            invincible = invincible,
+            respawnHover = respawnHover,
+            tubeX = tubeX.copyOf(),
+            tubeOffset = tubeOffset.copyOf(),
+            itemType = itemType.copyOf(),
+            itemY = itemY.copyOf(),
+            itemPhase = itemPhase.copyOf(),
+            tubeCur = tubeCur,
+            tubePrev = tubePrev,
+            tubeFade = tubeFade
+        )
+    }
+
+    private fun restoreGameState(data: GameStateData) {
+        if (data.tubeX.size != numberOfTubes ||
+            data.tubeOffset.size != numberOfTubes ||
+            data.itemType.size != numberOfTubes ||
+            data.itemY.size != numberOfTubes ||
+            data.itemPhase.size != numberOfTubes) {
+            return
+        }
+
+        passed = data.passed
+        bonus = data.bonus
+        level = data.level
+        scoringTube = data.scoringTube
+        birdY = data.birdY
+        velocity = data.velocity
+        hearts = data.hearts
+        invincible = data.invincible
+        respawnHover = data.respawnHover
+
+        data.tubeX.copyInto(tubeX)
+        data.tubeOffset.copyInto(tubeOffset)
+        data.itemType.copyInto(itemType)
+        data.itemY.copyInto(itemY)
+        data.itemPhase.copyInto(itemPhase)
+
+        for (i in 0 until numberOfTubes) {
+            updateTubeRectangles(i)
+        }
+
+        tubeCur = data.tubeCur
+        tubePrev = data.tubePrev
+        tubeFade = data.tubeFade
+
+        bgTint.set(PALETTES[(level - 1) % PALETTES.size])
+        popupTimer = 0f
+        bannerTimer = 0f
+        gameState = STATE_PAUSED
     }
 
     // ---------- วาดข้อความ / HUD ----------
