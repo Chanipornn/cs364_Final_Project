@@ -29,7 +29,7 @@ class MainActivity : AndroidApplication() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val game = FlappyBird(GamePrefs.getCharacter(this), GamePrefs.isNightMode(this))
+        val game = FlappyBird(this, GamePrefs.getCharacter(this), GamePrefs.isNightMode(this))
         initialize(game, AndroidApplicationConfiguration())
     }
 }

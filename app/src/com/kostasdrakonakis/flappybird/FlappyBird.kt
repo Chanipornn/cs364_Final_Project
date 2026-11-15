@@ -15,6 +15,7 @@
  */
 package com.kostasdrakonakis.flappybird
 
+import android.content.Context
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -32,6 +33,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class FlappyBird(
+    private val context: Context,
     private val characterIndex: Int = 0,
     private val nightMode: Boolean = false     // ธีมกลางคืน
 ) : ApplicationAdapter() {
@@ -63,6 +65,7 @@ class FlappyBird(
     private var passed: Int = 0      // จำนวนท่อที่ผ่าน (ใช้คิดด่าน)
     private var bonus: Int = 0       // คะแนนโบนัสจากเหรียญ/หัวใจส่วนเกิน
     private val score: Int get() = passed + bonus
+    private var highScore: Int = 0   // คะแนนสูงสุด
     private var level: Int = 1
     private var scoringTube: Int = 0
     private var gameState: Int = STATE_READY
@@ -179,6 +182,7 @@ class FlappyBird(
         resumeButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f, cw, ch)
         restartButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f - ch - 30f * unit, cw, ch)
 
+        highScore = GamePrefs.getHighScore(context)
         resetGame()
     }
 
@@ -549,6 +553,10 @@ class FlappyBird(
     private fun endGame() {
         gameState = STATE_GAME_OVER
         gameOverTimer = 0f
+        if (score > highScore) {
+            highScore = score
+            GamePrefs.setHighScore(context, highScore)
+        }
     }
 
     private fun resetGame() {
@@ -682,6 +690,7 @@ class FlappyBird(
             batch.draw(gameOver, gdxWidth / 2f - gw / 2f, gdxHeight * 0.66f, gw, gh)
             drawCentered("SCORE  $score", gdxHeight * 0.58f, 6f)
             drawCentered("LEVEL  $level", gdxHeight * 0.58f - 130f * unit, 4f)
+            drawCentered("BEST  $highScore", gdxHeight * 0.58f - 230f * unit, 4f, Color(1f, 0.9f, 0.2f, 1f))
             if (gameOverTimer > RESTART_DELAY && (blinkTimer % 1f) < 0.65f) {
                 drawCentered("TAP TO RESTART", gdxHeight * 0.3f, 4f)
             }

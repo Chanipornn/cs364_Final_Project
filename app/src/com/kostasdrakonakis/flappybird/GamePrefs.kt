@@ -8,6 +8,7 @@ object GamePrefs {
     private const val KEY_CHARACTER = "character_index"
     private const val KEY_LANGUAGE = "language"      // "th", "en" หรือไม่มีค่า = ตามภาษาเครื่อง
     private const val KEY_NIGHT_MODE = "night_mode"  // true = กลางคืน
+    private const val KEY_HIGH_SCORE = "high_score"
     private fun prefs(ctx: Context) = ctx.getSharedPreferences(NAME, Context.MODE_PRIVATE)
 
     fun getCharacter(ctx: Context): Int {
@@ -31,5 +32,14 @@ object GamePrefs {
 
     fun setNightMode(ctx: Context, night: Boolean) {
         prefs(ctx).edit().putBoolean(KEY_NIGHT_MODE, night).apply()
+    }
+
+    //  คะแนนสูงสุด
+    fun getHighScore(ctx: Context): Int = prefs(ctx).getInt(KEY_HIGH_SCORE, 0)
+
+    fun setHighScore(ctx: Context, score: Int) {
+        if (score > getHighScore(ctx)) {
+            prefs(ctx).edit().putInt(KEY_HIGH_SCORE, score).apply()
+        }
     }
 }
