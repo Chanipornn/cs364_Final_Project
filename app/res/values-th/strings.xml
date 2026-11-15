@@ -17,4 +17,16 @@
     <string name="char_cat">แมว</string>
     <string name="char_frog">กบ</string>
     <string name="char_pig">หมู</string>
+    <!-- ข้อความในเกม (หน้า Pause / Game Over / HUD) -->
+    <string name="game_paused">หยุดชั่วคราว</string>
+    <string name="game_resume">เล่นต่อ</string>
+    <string name="game_restart">เริ่มใหม่</string>
+    <string name="tap_to_start">แตะเพื่อเริ่ม</string>
+    <string name="tap_to_restart">แตะเพื่อเล่นใหม่</string>
+    <string name="game_level">ด่าน %1$d</string>
+    <string name="game_score">คะแนน  %1$d</string>
+    <string name="game_best">สูงสุด  %1$d</string>
+    <string name="banner_items">เหรียญและหนาม!</string>
+    <string name="banner_speed">เร็วขึ้น!</string>
+    <string name="popup_ouch">โอ๊ย!</string>
 </resources>

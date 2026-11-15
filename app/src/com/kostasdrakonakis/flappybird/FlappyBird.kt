@@ -53,6 +53,9 @@ class FlappyBird(
     private val hitCircle = Circle()
     private val itemCircle = Circle()
     private lateinit var font: BitmapFont
+    private lateinit var gameText: GameText          // วาดข้อความ (รองรับภาษาไทย)
+    private lateinit var btnGreen: Texture           // ปุ่มมนสีเขียว (เหมือนหน้าเมนู)
+    private lateinit var btnRed: Texture             // ปุ่มมนสีแดง
     private lateinit var topTubes: Array<Texture>      // เสาแต่ละสีตามด่าน
     private lateinit var bottomTubes: Array<Texture>
     private lateinit var random: Random
@@ -141,6 +144,7 @@ class FlappyBird(
 
         birdCircle = Circle()
         font = BitmapFont()
+        gameText = GameText()
         font.region.texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
 
         val skin = Characters.list[characterIndex]
@@ -183,6 +187,8 @@ class FlappyBird(
         val ch = 130f * unit
         resumeButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f, cw, ch)
         restartButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f - ch - 30f * unit, cw, ch)
+        btnGreen = drawableTexture(context, R.drawable.btn_game_green, cw.toInt(), ch.toInt())
+        btnRed = drawableTexture(context, R.drawable.btn_game_red, cw.toInt(), ch.toInt())
 
         highScore = GamePrefs.getHighScore(context)
         val savedState = GamePrefs.loadGameState(context)
@@ -293,7 +299,7 @@ class FlappyBird(
                         if (velocity > 0f) velocity = 0f
                     } else {
                         // ตกพื้น = เสีย 1 หัวใจ แล้ว Respawn (หมดหัวใจจึง Game Over)
-                        if (!damageBird("OUCH!", nearestTubeIndex())) return
+                        if (!damageBird(context.getString(R.string.popup_ouch), nearestTubeIndex())) return
                     }
                 }
 
@@ -310,7 +316,7 @@ class FlappyBird(
                     for (i in 0 until numberOfTubes) {
                         if (Intersector.overlaps(birdCircle, topTubeRectangles[i]) ||
                             Intersector.overlaps(birdCircle, bottomTubeRectangles[i])) {
-                            if (!damageBird("OUCH!", i)) return
+                            if (!damageBird(context.getString(R.string.popup_ouch), i)) return
                             break
                         }
                     }
@@ -443,7 +449,7 @@ class FlappyBird(
                     if (Intersector.overlaps(hitCircle, itemCircle)) {
                         itemType[i] = ITEM_NONE
                         // ชนสิ่งกีดขวางกลางอากาศ: เสียหัวใจ + อมตะ แต่ไม่ต้องย้ายนก
-                        damageBird("OUCH!", respawnTube = -1)
+                        damageBird(context.getString(R.string.popup_ouch), respawnTube = -1)
                         return
                     }
                 }
@@ -704,12 +710,8 @@ class FlappyBird(
     }
 
     // ---------- วาดข้อความ / HUD ----------
-
     private fun drawText(text: String, centerX: Float, y: Float, scale: Float, color: Color = Color.WHITE) {
-        font.data.setScale(scale * unit)
-        font.color = color
-        layout.setText(font, text)
-        font.draw(batch, layout, centerX - layout.width / 2f, y)
+        gameText.draw(batch, text, centerX, y, scale * unit * TEXT_SIZE, color)
     }
 
     private fun drawCentered(text: String, y: Float, scale: Float, color: Color = Color.WHITE) =
@@ -732,10 +734,10 @@ class FlappyBird(
         batch.setColor(1f, 1f, 1f, 1f)
     }
 
-    /** ปุ่มสี่เหลี่ยมพื้นเรียบ + ข้อความกลางปุ่ม ใช้กับ Resume/Restart */
-    private fun drawButton(r: Rectangle, label: String, color: Color) {
-        drawFilledRect(r, color)
-        drawText(label, r.x + r.width / 2f, r.y + r.height * 0.62f, 4.2f)
+    /** ปุ่มมนแบบหน้าเมนู + ข้อความกลางปุ่ม ใช้กับ Resume/Restart */
+    private fun drawButton(r: Rectangle, label: String, tex: Texture) {
+        batch.draw(tex, r.x, r.y, r.width, r.height)
+        drawText(label, r.x + r.width / 2f, r.y + r.height * 0.66f, 4.2f)
     }
 
     /** ไอคอนปุ่ม Pause: กรอบโปร่งมุมขวาบน + แท่งหยุดสองแท่ง */
@@ -751,9 +753,9 @@ class FlappyBird(
     /** ม่านมืดกลางจอ + ปุ่ม Resume / Restart ตอนหยุดเกม */
     private fun drawPauseOverlay() {
         drawFilledRect(Rectangle(0f, 0f, gdxWidth.toFloat(), gdxHeight.toFloat()), Color(0f, 0f, 0f, 0.6f))
-        drawCentered("PAUSED", gdxHeight * 0.64f, 7f)
-        drawButton(resumeButtonRect, "RESUME", Color(0.30f, 0.75f, 0.35f, 1f))
-        drawButton(restartButtonRect, "RESTART", Color(0.85f, 0.35f, 0.30f, 1f))
+        drawCentered(context.getString(R.string.game_paused), gdxHeight * 0.64f, 7f)
+        drawButton(resumeButtonRect, context.getString(R.string.game_resume), btnGreen)
+        drawButton(restartButtonRect, context.getString(R.string.game_restart), btnRed)
     }
 
     private fun drawHud() {
@@ -766,20 +768,20 @@ class FlappyBird(
 
         if (gameState != STATE_GAME_OVER) {
             drawCentered(score.toString(), top, 9f)
-            drawCentered("LEVEL $level", top - 150f * unit, 3.5f)
+            drawCentered(context.getString(R.string.game_level, level), top - 150f * unit, 3.5f)
         }
 
         if (gameState == STATE_PLAYING) drawPauseButton()
 
         if (gameState == STATE_READY) {
-            drawCentered("TAP TO START", gdxHeight * 0.3f, 4f)
+            drawCentered(context.getString(R.string.tap_to_start), gdxHeight * 0.3f, 4f)
         }
 
         // ป้ายขึ้นด่านใหม่
         if (gameState == STATE_PLAYING && bannerTimer > 0f) {
             val a = minOf(bannerTimer / BANNER_TIME * 2f, 1f)
-            drawCentered("LEVEL $level", gdxHeight * 0.7f, 8f, Color(1f, 0.9f, 0.2f, a))
-            val sub = if (level == ITEMS_FROM_LEVEL) "COINS & SPIKES!" else "SPEED UP!"
+            drawCentered(context.getString(R.string.game_level, level), gdxHeight * 0.7f, 8f, Color(1f, 0.9f, 0.2f, a))
+            val sub = if (level == ITEMS_FROM_LEVEL) context.getString(R.string.banner_items) else context.getString(R.string.banner_speed)
             drawCentered(sub, gdxHeight * 0.7f - 160f * unit, 4f, Color(1f, 1f, 1f, a))
         }
 
@@ -796,11 +798,11 @@ class FlappyBird(
             val gw = gameOver.width * unit
             val gh = gameOver.height * unit
             batch.draw(gameOver, gdxWidth / 2f - gw / 2f, gdxHeight * 0.66f, gw, gh)
-            drawCentered("SCORE  $score", gdxHeight * 0.58f, 6f)
-            drawCentered("LEVEL  $level", gdxHeight * 0.58f - 130f * unit, 4f)
-            drawCentered("BEST  $highScore", gdxHeight * 0.58f - 230f * unit, 4f, Color(1f, 0.9f, 0.2f, 1f))
+            drawCentered(context.getString(R.string.game_score, score), gdxHeight * 0.58f, 6f)
+            drawCentered(context.getString(R.string.game_level, level), gdxHeight * 0.58f - 130f * unit, 4f)
+            drawCentered(context.getString(R.string.game_best, highScore), gdxHeight * 0.58f - 230f * unit, 4f, Color(1f, 0.9f, 0.2f, 1f))
             if (gameOverTimer > RESTART_DELAY && (blinkTimer % 1f) < 0.65f) {
-                drawCentered("TAP TO RESTART", gdxHeight * 0.3f, 4f)
+                drawCentered(context.getString(R.string.tap_to_restart), gdxHeight * 0.3f, 4f)
             }
         }
     }
@@ -818,6 +820,9 @@ class FlappyBird(
         pixel.dispose()
         birds.forEach { it.dispose() }
         font.dispose()
+        gameText.dispose()
+        btnGreen.dispose()
+        btnRed.dispose()
     }
 
     companion object {
@@ -832,6 +837,7 @@ class FlappyBird(
         private const val ITEM_HEART = 3
 
         private const val REFERENCE_HEIGHT = 1920f
+        private const val TEXT_SIZE = 14f   // ขนาดตัวอักษร (px) ต่อ scale 1 เทียบเท่า BitmapFont เดิม
         private const val GRAVITY = 2f
         private const val JUMP = -30f
         private const val TUBE_VELOCITY = 4f
