@@ -53,6 +53,10 @@ class SplashActivity : Activity() {
             startActivity(Intent(this, CharacterSelectActivity::class.java))
         }
 
+        findViewById<Button>(R.id.btnHighScore).setOnClickListener {
+            startActivity(Intent(this, HighScoreActivity::class.java))
+        }
+
         findViewById<ImageButton>(R.id.btnExit).setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle(getString(R.string.exit_title))
@@ -78,4 +82,5 @@ class SplashActivity : Activity() {
         findViewById<ImageView>(R.id.imgMenuBird)
             .setImageDrawable(Characters.loadDrawable(this, skin.frameA))
     }
+
 }

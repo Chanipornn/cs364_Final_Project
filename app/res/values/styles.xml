@@ -30,6 +30,9 @@
     <style name="GameButton.Orange"><item name="android:background">@drawable/btn_game_orange</item></style>
     <style name="GameButton.Blue"><item name="android:background">@drawable/btn_game_blue</item></style>
     <style name="GameButton.Red"><item name="android:background">@drawable/btn_game_red</item></style>
+    <style name="GameButton.Purple">
+        <item name="android:background">@drawable/btn_game_purple</item>
+    </style>
 
     <!-- หัวข้อใหญ่แบบเกม -->
     <style name="GameTitle">

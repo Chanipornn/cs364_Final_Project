@@ -85,6 +85,10 @@ object GamePrefs {
         }
     }
 
+    fun clearHighScore(ctx: Context) {
+        prefs(ctx).edit().remove(KEY_HIGH_SCORE).apply()
+    }
+
     // ===== บันทึกและกู้คืนสถานะเกม (Save / Restore Game State) =====
 
     /** ตรวจสอบว่ามีข้อมูล Save State ที่บันทึกไว้หรือไม่ */

@@ -12,6 +12,12 @@
     <string name="exit_title">ออกจากเกม?</string>
     <string name="exit_message">คุณต้องการออกจากเกมใช่หรือไม่?</string>
 
+    <string name="high_score">คะแนนสูงสุด</string>
+    <string name="clear_high_score">ล้างคะแนนสูงสุด</string>
+    <string name="clear_high_score_title">ล้างคะแนนสูงสุด?</string>
+    <string name="clear_high_score_message">คุณแน่ใจหรือไม่ว่าต้องการล้างคะแนนสูงสุด?</string>
+    <string name="clear">ล้าง</string>
+
     <string name="language">ภาษา</string>
     <string name="theme">ธีม</string>
     <string name="theme_day">กลางวัน</string>
