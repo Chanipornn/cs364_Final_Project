@@ -22,6 +22,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.ImageButton
+import android.app.AlertDialog
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : Activity() {
@@ -49,6 +51,17 @@ class SplashActivity : Activity() {
 
         findViewById<Button>(R.id.btnCharacter).setOnClickListener {
             startActivity(Intent(this, CharacterSelectActivity::class.java))
+        }
+
+        findViewById<ImageButton>(R.id.btnExit).setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle(getString(R.string.exit_title))
+                .setMessage(getString(R.string.exit_message))
+                .setNegativeButton(getString(R.string.cancel), null)
+                .setPositiveButton(getString(R.string.exit)) { _, _ ->
+                    finishAffinity()
+                }
+                .show()
         }
     }
 

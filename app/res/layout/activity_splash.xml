@@ -74,4 +74,17 @@
                  ความกว้าง/ระยะห่างใช้ @dimen/menu_button_width และ @dimen/menu_button_gap -->
         </LinearLayout>
     </ScrollView>
+    <ImageButton
+        android:id="@+id/btnExit"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_power"
+        android:scaleType="center"
+        android:padding="8dp"
+        android:contentDescription="@string/exit" />
+
 </FrameLayout>
