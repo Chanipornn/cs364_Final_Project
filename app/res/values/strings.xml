@@ -23,6 +23,7 @@
     <string name="game_paused">PAUSED</string>
     <string name="game_resume">RESUME</string>
     <string name="game_restart">RESTART</string>
+    <string name="game_main_menu">MAIN MENU</string>
     <string name="tap_to_start">TAP TO START</string>
     <string name="tap_to_restart">TAP TO RESTART</string>
     <string name="game_level">LEVEL %1$d</string>

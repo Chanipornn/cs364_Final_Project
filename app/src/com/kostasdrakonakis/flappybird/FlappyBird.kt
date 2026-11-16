@@ -108,6 +108,8 @@ class FlappyBird(
     private val pauseButtonRect = Rectangle()
     private val resumeButtonRect = Rectangle()
     private val restartButtonRect = Rectangle()
+    private val gameOverRestartButtonRect = Rectangle()
+    private val gameOverMenuButtonRect = Rectangle()
 
     // ข้อความลอย (+3 / OUCH! / +1 HP)
     private var popupText = ""
@@ -186,6 +188,19 @@ class FlappyBird(
         val cw = 460f * unit
         val ch = 130f * unit
         resumeButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f, cw, ch)
+        gameOverRestartButtonRect.set(
+            gdxWidth / 2f - cw / 2f,
+            gdxHeight * 0.30f,
+            cw,
+            ch
+        )
+
+        gameOverMenuButtonRect.set(
+            gdxWidth / 2f - cw / 2f,
+            gdxHeight * 0.30f - ch - 30f * unit,
+            cw,
+            ch
+        )
         restartButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f - ch - 30f * unit, cw, ch)
         btnGreen = drawableTexture(context, R.drawable.btn_game_green, cw.toInt(), ch.toInt())
         btnRed = drawableTexture(context, R.drawable.btn_game_red, cw.toInt(), ch.toInt())
@@ -341,10 +356,23 @@ class FlappyBird(
             STATE_GAME_OVER -> {
                 blinkTimer += dt
                 gameOverTimer += dt
-                // รอสั้น ๆ ก่อนรับการแตะ ป้องกันกดรีสตาร์ทโดยไม่ตั้งใจ
+
                 if (gameOverTimer > RESTART_DELAY && Gdx.input.justTouched()) {
-                    GamePrefs.clearSavedGame(context)
-                    resetGame()
+                    when {
+                        pointInRect(gameOverRestartButtonRect) -> {
+                            GamePrefs.clearSavedGame(context)
+                            resetGame()
+                        }
+
+                        pointInRect(gameOverMenuButtonRect) -> {
+                            GamePrefs.clearSavedGame(context)
+
+                            val intent = android.content.Intent(context, SplashActivity::class.java)
+                            intent.flags = android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                    android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            context.startActivity(intent)
+                        }
+                    }
                 }
             }
         }
@@ -801,8 +829,18 @@ class FlappyBird(
             drawCentered(context.getString(R.string.game_score, score), gdxHeight * 0.58f, 6f)
             drawCentered(context.getString(R.string.game_level, level), gdxHeight * 0.58f - 130f * unit, 4f)
             drawCentered(context.getString(R.string.game_best, highScore), gdxHeight * 0.58f - 230f * unit, 4f, Color(1f, 0.9f, 0.2f, 1f))
-            if (gameOverTimer > RESTART_DELAY && (blinkTimer % 1f) < 0.65f) {
-                drawCentered(context.getString(R.string.tap_to_restart), gdxHeight * 0.3f, 4f)
+            if (gameOverTimer > RESTART_DELAY) {
+                drawButton(
+                    gameOverRestartButtonRect,
+                    context.getString(R.string.game_restart),
+                    btnGreen
+                )
+
+                drawButton(
+                    gameOverMenuButtonRect,
+                    context.getString(R.string.game_main_menu),
+                    btnRed
+                )
             }
         }
     }

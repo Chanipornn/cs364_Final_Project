@@ -21,6 +21,7 @@
     <string name="game_paused">หยุดชั่วคราว</string>
     <string name="game_resume">เล่นต่อ</string>
     <string name="game_restart">เริ่มใหม่</string>
+    <string name="game_main_menu">กลับหน้าหลัก</string>
     <string name="tap_to_start">แตะเพื่อเริ่ม</string>
     <string name="tap_to_restart">แตะเพื่อเล่นใหม่</string>
     <string name="game_level">ด่าน %1$d</string>
