@@ -74,9 +74,10 @@ class FlappyBird(
     private var gameState: Int = STATE_READY
     @Volatile private var currentGameState: Int = STATE_READY
     @Volatile private var isProcessingBackPress: Boolean = false
-    private val numberOfTubes: Int = 4
+    private val numberOfTubes: Int = GamePrefs.NUM_TUBES   // 8 ท่อ: มากพอให้ครอบคลุมจอแนวนอนที่กว้าง
     private var gdxHeight: Int = 0
     private var gdxWidth: Int = 0
+    private var layoutReady = false      // create() คำนวณเลย์เอาต์เสร็จแล้ว (ใช้กัน resize() ที่ถูกเรียกก่อน)
 
     // ขนาดทุกอย่างอิงจากความสูงจอ (ค่าเดิมออกแบบไว้สำหรับจอสูง ~1920px)
     private var unit = 1f
@@ -152,14 +153,39 @@ class FlappyBird(
         val skin = Characters.list[characterIndex]
         birds = arrayOf(Texture(skin.frameA), Texture(skin.frameB))
 
-        gdxHeight = Gdx.graphics.height
-        gdxWidth = Gdx.graphics.width
-        unit = gdxHeight / REFERENCE_HEIGHT
-
-        // ชุด 0 = เสาเดิม (เขียว) ชุด 1..4 = แดง ทอง ฟ้า ส้ม
+        // ท่อ/ขนาด/ปุ่ม คำนวณจากขนาดจอปัจจุบัน (เรียกซ้ำได้ตอนหมุนจอใน resize())
         topTubes = Array(TUBE_SKINS) { Texture(if (it == 0) "toptube.png" else "toptube_$it.png") }
         bottomTubes = Array(TUBE_SKINS) { Texture(if (it == 0) "bottomtube.png" else "bottomtube_$it.png") }
         random = Random()
+
+        topTubeRectangles = Array(numberOfTubes) { Rectangle() }
+        bottomTubeRectangles = Array(numberOfTubes) { Rectangle() }
+
+        layoutForSize(Gdx.graphics.width, Gdx.graphics.height)
+        layoutReady = true
+
+        highScore = GamePrefs.getHighScore(context)
+        val savedState = GamePrefs.loadGameState(context)
+        if (savedState != null) {
+            restoreGameState(savedState)
+        } else {
+            resetGame()
+        }
+    }
+
+    /**
+     * คำนวณขนาดทุกอย่างใหม่จากขนาดจอ (w x h) ใช้ทั้งตอนเริ่มเกมและตอนหมุนจอ
+     * ทุกอย่างอิงจากความสูงจอ (unit) ดังนั้นแนวตั้ง/แนวนอนได้สัดส่วนเดียวกัน
+     */
+    private fun layoutForSize(w: Int, h: Int) {
+        gdxWidth = w
+        gdxHeight = h
+        unit = h / REFERENCE_HEIGHT
+
+        // SpriteBatch จำขนาดจอตอนสร้างไว้ ต้องตั้ง projection ใหม่ทุกครั้งที่ขนาดจอเปลี่ยน (หมุนจอ)
+        // ไม่งั้นภาพจะถูกวาดผิดสัดส่วน/ครึ่งจอ
+        Gdx.gl.glViewport(0, 0, w, h)
+        batch.projectionMatrix.setToOrtho2D(0f, 0f, w.toFloat(), h.toFloat())
 
         gap = GAP * unit
         tubeW = topTubes[0].width * unit
@@ -170,12 +196,17 @@ class FlappyBird(
         obstacleSize = obstacleTex.width * unit
         heartItemW = heartFull.width * unit
         heartItemH = heartFull.height * unit
-        distanceBetweenTubes = gdxWidth * 3f / 4f
 
-        topTubeRectangles = Array(numberOfTubes) { Rectangle() }
-        bottomTubeRectangles = Array(numberOfTubes) { Rectangle() }
+        // ระยะห่างท่อ: แนวตั้งเท่าเดิม (3/4 ของความกว้าง) แนวนอนใช้ระยะเทียบเท่า (นับเป็นหน่วย unit)
+        // เพื่อให้ความยากเท่ากันทั้งสองแนว และต้องไม่สั้นจนท่อโผล่กลางจอตอนวนกลับมา
+        val shortSide = minOf(w, h).toFloat()
+        val longSide = maxOf(w, h).toFloat()
+        distanceBetweenTubes = maxOf(
+            0.75f * (shortSide / longSide) * REFERENCE_HEIGHT * unit,
+            (w + 2f * tubeW) / numberOfTubes
+        )
 
-        // ตำแหน่งปุ่ม Pause (มุมขวาบน เว้น safe area) คำนวณครั้งเดียว ใช้ตลอดเกม
+        // ตำแหน่งปุ่ม Pause (มุมขวาบน เว้น safe area)
         val safeTop = Gdx.graphics.safeInsetTop.toFloat()
         val safeRight = Gdx.graphics.safeInsetRight.toFloat()
         val btnSize = 110f * unit
@@ -188,29 +219,72 @@ class FlappyBird(
         val cw = 460f * unit
         val ch = 130f * unit
         resumeButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f, cw, ch)
-        gameOverRestartButtonRect.set(
-            gdxWidth / 2f - cw / 2f,
-            gdxHeight * 0.30f,
-            cw,
-            ch
-        )
-
-        gameOverMenuButtonRect.set(
-            gdxWidth / 2f - cw / 2f,
-            gdxHeight * 0.30f - ch - 30f * unit,
-            cw,
-            ch
-        )
+        gameOverRestartButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.30f, cw, ch)
+        gameOverMenuButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.30f - ch - 30f * unit, cw, ch)
         restartButtonRect.set(gdxWidth / 2f - cw / 2f, gdxHeight * 0.46f - ch - 30f * unit, cw, ch)
+
+        if (::btnGreen.isInitialized) btnGreen.dispose()
+        if (::btnRed.isInitialized) btnRed.dispose()
         btnGreen = drawableTexture(context, R.drawable.btn_game_green, cw.toInt(), ch.toInt())
         btnRed = drawableTexture(context, R.drawable.btn_game_red, cw.toInt(), ch.toInt())
+    }
 
-        highScore = GamePrefs.getHighScore(context)
-        val savedState = GamePrefs.loadGameState(context)
-        if (savedState != null) {
-            restoreGameState(savedState)
+    /** หมุนจอ / เปลี่ยนขนาดหน้าต่าง: คำนวณเลย์เอาต์ใหม่ แล้วย้ายของในเกมให้ตรงสัดส่วนเดิม */
+    override fun resize(width: Int, height: Int) {
+        if (!layoutReady || width <= 0 || height <= 0) return
+        if (width == gdxWidth && height == gdxHeight) return
+
+        val oldW = gdxWidth
+        val oldH = gdxHeight
+        layoutForSize(width, height)
+        if (gameState == STATE_READY) {
+            resetGame()          // ยังไม่เริ่มเล่น: จัดฉากใหม่ตามขนาดจอใหม่
         } else {
-            resetGame()
+            rescaleWorld(oldW, oldH)
+        }
+
+        // กำลังเล่นอยู่ → หยุดชั่วคราวให้ผู้เล่นตั้งตัวก่อนแล้วกดเล่นต่อเอง
+        if (gameState == STATE_PLAYING) {
+            gameState = STATE_PAUSED
+            currentGameState = STATE_PAUSED
+        }
+    }
+
+    /**
+     * แปลงตำแหน่งของทุกอย่างจากจอขนาด (oldW x oldH) เป็นจอปัจจุบัน
+     * ขยายทั้งโลกด้วยอัตราเดียวกัน (ตามความสูง) โดยให้นกอยู่กึ่งกลางจอเหมือนเดิม
+     */
+    private fun rescaleWorld(oldW: Int, oldH: Int) {
+        if (oldW <= 0 || oldH <= 0) return
+        val s = gdxHeight.toFloat() / oldH
+        val oldTubeW = tubeW / s
+
+        birdY *= s
+        velocity *= s
+        popupX = gdxWidth / 2f
+        popupY *= s
+        for (i in 0 until numberOfTubes) {
+            val cx = tubeX[i] + oldTubeW / 2f
+            tubeX[i] = gdxWidth / 2f + (cx - oldW / 2f) * s - tubeW / 2f
+            tubeOffset[i] *= s
+            itemY[i] *= s
+            updateTubeRectangles(i)
+        }
+        birdY = birdY.coerceIn(0f, maxOf(gdxHeight - birdH, 0f))
+    }
+
+    /** พื้นหลังเป็นภาพแนวตั้ง: แนวตั้งยืดเต็มจอเหมือนเดิม แนวนอนวางต่อกันเป็นแถวให้ภาพไม่เพี้ยน */
+    private fun drawBackground() {
+        val h = gdxHeight.toFloat()
+        val tileW = h * background.width / background.height
+        if (gdxWidth <= tileW) {
+            batch.draw(background, 0f, 0f, gdxWidth.toFloat(), h)
+            return
+        }
+        var x = 0f
+        while (x < gdxWidth) {
+            batch.draw(background, x, 0f, tileW + 1f, h)   // +1 กันเส้นรอยต่อ
+            x += tileW
         }
     }
 
@@ -227,7 +301,7 @@ class FlappyBird(
         drawTint.set(bgTint)
         if (nightMode) drawTint.mul(NIGHT_TINT)
         batch.color = drawTint
-        batch.draw(background, 0f, 0f, gdxWidth.toFloat(), gdxHeight.toFloat())
+        drawBackground()
 
         // เปลี่ยนสีเสาแบบจางข้ามกัน: วาดสีเก่าก่อน แล้วซ้อนสีใหม่ด้วยความทึบที่ค่อย ๆ เพิ่ม
         if (tubeFade < 1f) drawTubes(tubePrev, 1f)
@@ -455,7 +529,7 @@ class FlappyBird(
                     if (Intersector.overlaps(birdCircle, itemCircle)) {
                         itemType[i] = ITEM_NONE
                         bonus += COIN_VALUE
-                        showPopup("+$COIN_VALUE", Color(1f, 0.9f, 0.2f, 1f))
+                        showPopup(context.getString(R.string.popup_coin, COIN_VALUE), Color(1f, 0.9f, 0.2f, 1f))
                     }
                 }
                 type == ITEM_HEART -> {
@@ -464,11 +538,11 @@ class FlappyBird(
                         itemType[i] = ITEM_NONE
                         if (hearts < MAX_HEARTS) {
                             hearts++
-                            showPopup("+1 HP", Color(1f, 0.45f, 0.55f, 1f))
+                            showPopup(context.getString(R.string.popup_heal), Color(1f, 0.45f, 0.55f, 1f))
                         } else {
                             // หัวใจเต็มอยู่แล้ว แปลงเป็นคะแนนแทนไม่ให้เสียเปล่า
                             bonus += COIN_VALUE
-                            showPopup("+$COIN_VALUE", Color(1f, 0.9f, 0.2f, 1f))
+                            showPopup(context.getString(R.string.popup_coin, COIN_VALUE), Color(1f, 0.9f, 0.2f, 1f))
                         }
                     }
                 }
@@ -631,9 +705,14 @@ class FlappyBird(
         tubeFade = 1f
         birdY = gdxHeight / 2f - birdH / 2f
 
+        // ท่อต้นแรกอยู่ห่างนกเท่ากันในหน่วย unit ทั้งสองแนว
+        // (แนวตั้งเท่าเดิมเป๊ะ = 1 ความกว้างจอ, แนวนอนไม่ไกลเกินจนไม่เห็นเสา)
+        val shortSide = minOf(gdxWidth, gdxHeight).toFloat()
+        val longSide = maxOf(gdxWidth, gdxHeight).toFloat()
+        val firstTubeCenterX = gdxWidth / 2f + (shortSide / longSide) * REFERENCE_HEIGHT * unit
         for (i in 0 until numberOfTubes) {
             tubeOffset[i] = randomOffset()
-            tubeX[i] = gdxWidth / 2f - tubeW / 2f + gdxWidth.toFloat() + i * distanceBetweenTubes
+            tubeX[i] = firstTubeCenterX - tubeW / 2f + i * distanceBetweenTubes
             itemType[i] = ITEM_NONE
             updateTubeRectangles(i)
         }
@@ -670,7 +749,9 @@ class FlappyBird(
             itemPhase = itemPhase.copyOf(),
             tubeCur = tubeCur,
             tubePrev = tubePrev,
-            tubeFade = tubeFade
+            tubeFade = tubeFade,
+            screenW = gdxWidth,
+            screenH = gdxHeight
         )
     }
 
@@ -679,7 +760,11 @@ class FlappyBird(
             data.tubeOffset.size != numberOfTubes ||
             data.itemType.size != numberOfTubes ||
             data.itemY.size != numberOfTubes ||
-            data.itemPhase.size != numberOfTubes) {
+            data.itemPhase.size != numberOfTubes ||
+            data.scoringTube !in 0 until numberOfTubes) {
+            // เซฟเก่าจำนวนท่อไม่ตรง (เวอร์ชันก่อน) → ทิ้งแล้วเริ่มเกมใหม่
+            GamePrefs.clearSavedGame(context)
+            resetGame()
             return
         }
 
@@ -699,6 +784,11 @@ class FlappyBird(
         data.itemY.copyInto(itemY)
         data.itemPhase.copyInto(itemPhase)
 
+        // เซฟไว้ตอนจอคนละขนาด/คนละแนว → ปรับตำแหน่งให้พอดีจอปัจจุบัน
+        if (data.screenW > 0 && data.screenH > 0 &&
+            (data.screenW != gdxWidth || data.screenH != gdxHeight)) {
+            rescaleWorld(data.screenW, data.screenH)
+        }
         for (i in 0 until numberOfTubes) {
             updateTubeRectangles(i)
         }

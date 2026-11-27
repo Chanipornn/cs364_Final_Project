@@ -46,4 +46,16 @@
     <dimen name="char_select_margin_top">28dp</dimen>
     <dimen name="char_back_margin_top">10dp</dimen>
 
+    <!-- ===== หน้าคะแนนสูงสุด ===== -->
+    <dimen name="high_score_icon_text">48sp</dimen>
+    <dimen name="high_score_icon_margin_top">24dp</dimen>
+    <dimen name="high_score_value_text">48sp</dimen>
+    <dimen name="high_score_value_margin_top">8dp</dimen>
+    <dimen name="high_score_clear_margin_top">32dp</dimen>
+
+    <!-- ===== ปุ่ม Exit มุมขวาบนของหน้าเมนูหลัก ===== -->
+    <dimen name="exit_button_size">48dp</dimen>
+    <dimen name="exit_button_margin">8dp</dimen>
+    <dimen name="exit_button_padding">8dp</dimen>
+
 </resources>

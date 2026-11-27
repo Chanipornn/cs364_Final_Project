@@ -44,6 +44,14 @@
     <string name="banner_items">COINS &amp; SPIKES!</string>
     <string name="banner_speed">SPEED UP!</string>
     <string name="popup_ouch">OUCH!</string>
+    <string name="popup_heal">+1 HP</string>
+    <string name="popup_coin">+%1$d</string>
+
+    <!-- สัญลักษณ์ที่ใช้เหมือนกันทุกภาษา ไม่ต้องแปล -->
+    <string name="arrow_prev" translatable="false">&lt;</string>
+    <string name="arrow_next" translatable="false">&gt;</string>
+    <string name="high_score_trophy" translatable="false">🏆</string>
+    <string name="score_default" translatable="false">0</string>
 
     <!-- ชื่อภาษาแสดงเป็นภาษาของตัวเองเสมอ ไม่ต้องแปล -->
     <string name="lang_thai" translatable="false">ไทย</string>

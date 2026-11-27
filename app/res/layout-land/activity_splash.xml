@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- เมนูหลักแนวนอน: ซ้าย = ชื่อเกม + ตัวละคร, ขวา = ปุ่มจัดเป็นตาราง 2x2
+     id ทุกตัวตรงกับ layout แนวตั้ง จึงใช้โค้ดใน SplashActivity เดิมได้เลย -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_menu"
+        android:foreground="@color/menu_overlay" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="@dimen/menu_padding">
+
+            <!-- ฝั่งซ้าย: ชื่อเกม + ตัวละครที่เลือก -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/GameTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/app_name"
+                    android:textSize="@dimen/menu_title_text" />
+
+                <ImageView
+                    android:id="@+id/imgMenuBird"
+                    android:layout_width="@dimen/menu_bird_width"
+                    android:layout_height="@dimen/menu_bird_height"
+                    android:layout_marginTop="@dimen/menu_bird_margin_top"
+                    android:contentDescription="@string/select_character"
+                    android:scaleType="fitCenter" />
+            </LinearLayout>
+
+            <!-- ฝั่งขวา: ปุ่ม 2 แถว แถวละ 2 ปุ่ม -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.4"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/menu_button_gap"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/playButton"
+                        style="@style/GameButton.Green"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/menu_button_gap"
+                        android:layout_weight="1"
+                        android:text="@string/play_game"
+                        android:textSize="@dimen/menu_play_text" />
+
+                    <Button
+                        android:id="@+id/btnCharacter"
+                        style="@style/GameButton.Orange"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/select_character" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnHighScore"
+                        style="@style/GameButton.Purple"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/menu_button_gap"
+                        android:layout_weight="1"
+                        android:text="@string/high_score" />
+
+                    <Button
+                        android:id="@+id/btnSettings"
+                        style="@style/GameButton.Blue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <ImageButton
+        android:id="@+id/btnExit"
+        android:layout_width="@dimen/exit_button_size"
+        android:layout_height="@dimen/exit_button_size"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="@dimen/exit_button_margin"
+        android:layout_marginEnd="@dimen/exit_button_margin"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/exit"
+        android:padding="@dimen/exit_button_padding"
+        android:scaleType="center"
+        android:src="@drawable/ic_power" />
+
+</FrameLayout>

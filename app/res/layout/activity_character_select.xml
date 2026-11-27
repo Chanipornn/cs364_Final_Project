@@ -35,7 +35,7 @@
                 android:layout_height="@dimen/char_arrow_size"
                 android:paddingLeft="0dp"
                 android:paddingRight="0dp"
-                android:text="&lt;"
+                android:text="@string/arrow_prev"
                 android:textSize="@dimen/char_arrow_text" />
 
             <ImageView
@@ -53,7 +53,7 @@
                 android:layout_height="@dimen/char_arrow_size"
                 android:paddingLeft="0dp"
                 android:paddingRight="0dp"
-                android:text="&gt;"
+                android:text="@string/arrow_next"
                 android:textSize="@dimen/char_arrow_text" />
         </LinearLayout>
 

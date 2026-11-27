@@ -11,9 +11,16 @@
         android:src="@drawable/bg_menu"
         android:foreground="@color/menu_overlay" />
 
-    <LinearLayout
+    <!-- ScrollView: แนวนอนจอเตี้ย เนื้อหาเลื่อนดูได้ ไม่ล้นจอ / แนวตั้งยังจัดกึ่งกลางเหมือนเดิม -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
         android:padding="@dimen/menu_padding">
@@ -29,18 +36,18 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="🏆"
-            android:textSize="48sp" />
+            android:layout_marginTop="@dimen/high_score_icon_margin_top"
+            android:text="@string/high_score_trophy"
+            android:textSize="@dimen/high_score_icon_text" />
 
         <TextView
             android:id="@+id/highScoreText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="0"
+            android:layout_marginTop="@dimen/high_score_value_margin_top"
+            android:text="@string/score_default"
             android:textColor="#4A4A4A"
-            android:textSize="48sp"
+            android:textSize="@dimen/high_score_value_text"
             android:textStyle="bold" />
 
         <Button
@@ -48,7 +55,7 @@
             style="@style/GameButton.Orange"
             android:layout_width="@dimen/menu_button_width"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="@dimen/high_score_clear_margin_top"
             android:layout_marginBottom="@dimen/menu_button_gap"
             android:text="@string/clear_high_score" />
 
@@ -60,5 +67,6 @@
             android:text="@string/back" />
 
     </LinearLayout>
+    </ScrollView>
 
 </FrameLayout>

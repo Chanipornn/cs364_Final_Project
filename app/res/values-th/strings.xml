@@ -42,4 +42,6 @@
     <string name="banner_items">เหรียญและหนาม!</string>
     <string name="banner_speed">เร็วขึ้น!</string>
     <string name="popup_ouch">โอ๊ย!</string>
+    <string name="popup_heal">+1 หัวใจ</string>
+    <string name="popup_coin">+%1$d</string>
 </resources>

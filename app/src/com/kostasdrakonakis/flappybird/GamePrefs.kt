@@ -20,11 +20,16 @@ data class GameStateData(
     val itemPhase: FloatArray,
     val tubeCur: Int,
     val tubePrev: Int,
-    val tubeFade: Float
+    val tubeFade: Float,
+    val screenW: Int = 0,   // ขนาดจอตอนบันทึก ใช้ปรับตำแหน่งเมื่อกู้คืนคนละแนว
+    val screenH: Int = 0
 )
 
 /** ที่เก็บค่าตั้งต้นของเกม ใช้ร่วมกันทั้งทีม (คนที่ 2, 3 เพิ่ม key ของตัวเองในไฟล์นี้) */
 object GamePrefs {
+    /** จำนวนท่อในเกม (ต้องตรงกับ FlappyBird) ใช้ตรวจขนาดข้อมูลตอนบันทึก/กู้คืน */
+    const val NUM_TUBES = 8
+
     private const val NAME = "game_prefs"
     private const val KEY_CHARACTER = "character_index"
     private const val KEY_LANGUAGE = "language"      // "th", "en" หรือไม่มีค่า = ตามภาษาเครื่อง
@@ -50,6 +55,8 @@ object GamePrefs {
     private const val KEY_STATE_TUBE_CUR = "state_tube_cur"
     private const val KEY_STATE_TUBE_PREV = "state_tube_prev"
     private const val KEY_STATE_TUBE_FADE = "state_tube_fade"
+    private const val KEY_STATE_SCREEN_W = "state_screen_w"
+    private const val KEY_STATE_SCREEN_H = "state_screen_h"
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences(NAME, Context.MODE_PRIVATE)
 
@@ -96,8 +103,9 @@ object GamePrefs {
 
     /** บันทึกสถานะเกมปัจจุบัน */
     fun saveGameState(ctx: Context, data: GameStateData) {
-        if (data.tubeX.size != 4 || data.tubeOffset.size != 4 ||
-            data.itemType.size != 4 || data.itemY.size != 4 || data.itemPhase.size != 4) {
+        if (data.tubeX.size != NUM_TUBES || data.tubeOffset.size != NUM_TUBES ||
+            data.itemType.size != NUM_TUBES || data.itemY.size != NUM_TUBES ||
+            data.itemPhase.size != NUM_TUBES) {
             return
         }
 
@@ -120,6 +128,8 @@ object GamePrefs {
             .putInt(KEY_STATE_TUBE_CUR, data.tubeCur)
             .putInt(KEY_STATE_TUBE_PREV, data.tubePrev)
             .putFloat(KEY_STATE_TUBE_FADE, data.tubeFade)
+            .putInt(KEY_STATE_SCREEN_W, data.screenW)
+            .putInt(KEY_STATE_SCREEN_H, data.screenH)
             .apply()
     }
 
@@ -152,7 +162,7 @@ object GamePrefs {
         val isValid = passed >= 0 &&
                 bonus >= 0 &&
                 level >= 1 &&
-                scoringTube in 0..3 &&
+                scoringTube >= 0 &&
                 hearts in 1..3 &&
                 tubeCur in 0..4 &&
                 tubePrev in 0..4 &&
@@ -185,7 +195,9 @@ object GamePrefs {
             itemPhase = itemPhase,
             tubeCur = tubeCur,
             tubePrev = tubePrev,
-            tubeFade = tubeFade
+            tubeFade = tubeFade,
+            screenW = p.getInt(KEY_STATE_SCREEN_W, 0),
+            screenH = p.getInt(KEY_STATE_SCREEN_H, 0)
         )
     }
 
@@ -210,10 +222,12 @@ object GamePrefs {
             .remove(KEY_STATE_TUBE_CUR)
             .remove(KEY_STATE_TUBE_PREV)
             .remove(KEY_STATE_TUBE_FADE)
+            .remove(KEY_STATE_SCREEN_W)
+            .remove(KEY_STATE_SCREEN_H)
             .apply()
     }
 
-    private fun parseFloatArray(str: String?, expectedSize: Int = 4): FloatArray? {
+    private fun parseFloatArray(str: String?, expectedSize: Int = NUM_TUBES): FloatArray? {
         if (str.isNullOrBlank()) return null
         val parts = str.split(",")
         if (parts.size != expectedSize) return null
@@ -226,7 +240,7 @@ object GamePrefs {
         return arr
     }
 
-    private fun parseIntArray(str: String?, expectedSize: Int = 4): IntArray? {
+    private fun parseIntArray(str: String?, expectedSize: Int = NUM_TUBES): IntArray? {
         if (str.isNullOrBlank()) return null
         val parts = str.split(",")
         if (parts.size != expectedSize) return null
